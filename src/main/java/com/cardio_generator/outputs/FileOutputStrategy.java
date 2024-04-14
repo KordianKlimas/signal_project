@@ -7,8 +7,12 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * A strategy implementation for outputting data to files.
+ */
 public class FileOutputStrategy implements OutputStrategy {
 
+    /** The base directory where files will be saved. */
     private String BaseDirectory;
 
     public final ConcurrentHashMap<String, String> file_map = new ConcurrentHashMap<>();
@@ -18,6 +22,14 @@ public class FileOutputStrategy implements OutputStrategy {
         this.BaseDirectory = baseDirectory;
     }
 
+    /**
+     * Outputs data to a file based on the patient ID, timestamp, label, and data.
+     *
+     * @param patientId The ID of the patient.
+     * @param timestamp The timestamp of the data.
+     * @param label The label associated with the data.
+     * @param data The actual data to be output.
+     */
     @Override
     public void output(int patientId, long timestamp, String label, String data) {
         try {

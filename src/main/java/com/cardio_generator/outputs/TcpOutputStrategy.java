@@ -6,6 +6,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Executors;
 
+/**
+ * A strategy implementation for outputting data over TCP connections.
+ */
 public class TcpOutputStrategy implements OutputStrategy {
 
     private ServerSocket serverSocket;
@@ -31,7 +34,14 @@ public class TcpOutputStrategy implements OutputStrategy {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Outputs data to the connected client over TCP.
+     *
+     * @param patientId The ID of the patient.
+     * @param timestamp The timestamp of the data.
+     * @param label The label associated with the data.
+     * @param data The actual data to be output.
+     */
     @Override
     public void output(int patientId, long timestamp, String label, String data) {
         if (out != null) {
