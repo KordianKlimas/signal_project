@@ -1,0 +1,17 @@
+
+The Health Data Simulator orchestrates a comprehensive array of data generators and output strategies to emulate health data for a specified number of patients.
+Central to its functionality are several key components:
+
+Data Generators:
+These include the ECGDataGenerator, BloodLevelsDataGenerator, AlertGenerator, BloodPressureDataGenerator, and BloodSaturationDataGenerator.
+Each of these generators implements the PatientDataGenerator interface, mandating the presence of the generate method.
+This unified interface ensures consistency in generating diverse health data types.
+
+Output Strategies:
+The simulator leverages various output strategies such as TcpOutputStrategy, ConsoleOutputStrategy, WebSocketOutputStrategy, and FileOutputStrategy.
+These strategies conform to the OutputStrategy interface, facilitating seamless integration into the simulator's architecture.
+
+HealthDataSimulator Class:
+Responsible for initializing both the data generators and output strategies, the HealthDataSimulator class plays a pivotal role in coordinating the simulation process.
+It employs a ScheduledExecutorService to schedule tasks for each patient systematically. By default, the ConsoleOutputStrategy is set as the primary output mechanism.
+By encapsulating these functionalities within a well-structured architecture, the Health Data Simulator offers unparalleled flexibility and customizability in simulating diverse health data scenarios, catering to a wide range of use cases with ease.
