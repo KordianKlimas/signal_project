@@ -15,3 +15,15 @@ HealthDataSimulator Class:
 Responsible for initializing both the data generators and output strategies, the HealthDataSimulator class plays a pivotal role in coordinating the simulation process.
 It employs a ScheduledExecutorService to schedule tasks for each patient systematically. By default, the ConsoleOutputStrategy is set as the primary output mechanism.
 By encapsulating these functionalities within a well-structured architecture, the Health Data Simulator offers unparalleled flexibility and customizability in simulating diverse health data scenarios, catering to a wide range of use cases with ease.
+
+Data Storage System:
+allows to store medical Patient's and staff data.
+
+Alert Genertaion System:
+creates and manages alerts based on  Storage System data
+
+Alert Genertaion System:
+creates and manages alerts based on  Storage System data
+
+Data Access Layer:
+allows staff to add and retrive any information about patients, and  alerts staff  via console giving description of patient's condition
