@@ -65,6 +65,21 @@ public class DataStorage {
         }
         return new ArrayList<>(); // return an empty list if no patient is found
     }
+    /**
+     * Retrieves a list of all PatientRecord objects for a specific patient
+     *
+     * @param patientId the unique identifier of the patient whose records are to be
+     *                  retrieved
+     * @return a list of PatientRecord objects that fall within the specified time
+     *         range
+     */
+    public List<PatientRecord> getAllRecords(int patientId) {
+        Patient patient = patientMap.get(patientId);
+        if (patient != null) {
+            return patient.getAllRecords();
+        }
+        return new ArrayList<>(); // return an empty list if no patient is found
+    }
 
     /**
      * Retrieves a collection of all patients stored in the data storage.
@@ -73,6 +88,15 @@ public class DataStorage {
      */
     public List<Patient> getAllPatients() {
         return new ArrayList<>(patientMap.values());
+    }
+
+    /**
+     * Retrieves a patients stored in the data storage.
+     * @param patientId = id of patient
+     * @return patient object or null
+     */
+    public Patient getPatient(int patientId) {
+        return patientMap.getOrDefault(patientId,null);
     }
 
     /**
