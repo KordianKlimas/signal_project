@@ -28,7 +28,7 @@ public class FilesReader implements DataReader {
      * Allows to import data from files in the Base_directory  directory to specified dataStorage
      * @param Base_directory
      */
-    FilesReader(String Base_directory){
+    public FilesReader(String Base_directory){
         this.Base_directory = Base_directory;
     }
 
@@ -123,9 +123,9 @@ public class FilesReader implements DataReader {
             DataStorage storage = new DataStorage();
 
             s.readData(storage);
-//            for(PatientRecord re : storage.getAllRecords(2)){
-//                System.out.println(re.getRecordType());
-//            }
+     //       for(PatientRecord re : storage.getAllRecords(1)){
+     //           System.out.println(re.getRecordType());
+     //       }
 
 
         } catch (IOException e) {

@@ -1,10 +1,12 @@
 package com.alerts;
 
 import com.data_management.DataStorage;
+import com.data_management.FilesReader;
 import com.data_management.Patient;
 import com.data_management.PatientRecord;
 
 import javax.sound.sampled.Line;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,7 +35,7 @@ public class AlertGenerator {
     /**
      * Evaluates the specified patient's data to determine if any alert conditions
      * are met. If a condition is met, an alert is triggered via the
-     * {@link #triggerAlert}
+     * {@link #triggerAlerts}
      * method. This method should define the specific conditions under which an
      * alert will be triggered.
      *
@@ -44,6 +46,11 @@ public class AlertGenerator {
         // record types beside the 7 that are currently supported ( Cholesterol, ECG.....) and
         // check compound alerts created by staff
 
+        // making sure there are patients
+        if (patient == null) {
+            System.err.println("Null patient provided");
+            return;
+        }
 
         LinkedList<PatientRecord> data_DiastolicPressure = new LinkedList<>();
         LinkedList<PatientRecord> data_SystolicPressure = new LinkedList<>();
@@ -51,7 +58,9 @@ public class AlertGenerator {
         LinkedList<PatientRecord> data_ECG = new LinkedList<>();
         LinkedList<PatientRecord> data_WhiteBloodCells = new LinkedList<>();
         LinkedList<PatientRecord> data_Cholesterol = new LinkedList<>();
+        LinkedList<PatientRecord> data_RedBloodCells = new LinkedList<>();
         this.alerts=new LinkedList<>();
+
         for(PatientRecord record:patient.getAllRecords()){
             switch (record.getRecordType()) {
                 case "DiastolicPressure":
@@ -68,6 +77,9 @@ public class AlertGenerator {
                     break;
                 case "WhiteBloodCells":
                     data_WhiteBloodCells.add(record);
+                    break;
+                case "RedBloodCells":
+                    data_RedBloodCells.add(record);
                     break;
                 case "Cholesterol":
                     data_Cholesterol.add(record);
@@ -87,17 +99,10 @@ public class AlertGenerator {
 
         this.alerts.addAll(checkBloodPressure(patient, data_DiastolicPressure, data_SystolicPressure));
         this.alerts.addAll(checkBloodSaturation(patient,data_Saturation));
-        //this.alerts.addAll(checkECG(patient,data_ECG));
+        this.alerts.addAll(checkECG(patient,data_ECG));
         // compound alert:
         this.alerts.addAll(checkCompoundAlerts(patient,"SystolicPressure critical value reached","Low Saturation of oxygen in blood",0.1,"Hypotensive Hypoxemia Alert"));
-
-        for(PatientRecord record:data_ECG){
-        //  System.out.println(convertToBPM(record.getMeasurementValue()));
-        }
-
-        for(Alert alert: alerts){
-            triggerAlert(alert);
-        }
+        triggerAlerts(alerts);
     }
 
     /**
@@ -259,93 +264,120 @@ public class AlertGenerator {
 
     /**
      * Creates alert for Abnormal Heart Rate when Heart Rate drops under 50 or is over 100.
+     *
      * Creates alert for Irregular beat pattern detected if in the measured data there is record two or more standard deviations.
      * To create  alert for Irregular beat pattern, the standard deviation is calculated for time window of 10 minutes, there has 
-     * to be at leat 5 records within 10 minutes to trigger alert.
+     * to be at least 5 records within 10 minutes to trigger alert .
      *
      * @param patient
-     * @param data_ECG
+     * @param ecgData
      * @return
      */
-    private List<Alert> checkECG(Patient patient,LinkedList<PatientRecord> data_ECG){
+    private List<Alert> checkECG(Patient patient,LinkedList<PatientRecord> ecgData){
         final int windowSize = 10;
-        final int window_time_minutes = 10; // in minutes. withing this time the  standard deviation is calculated 
+        final int windowTimeMinutes = 10; // in minutes. within this time the standard deviation is calculated
+        final double heartRateLowerBound = 50;
+        final double heartRateUpperBound = 100;
+        final double varianceMultiplier = 3.6; // depends on patient . smaller value will increase number of false alerts
 
-        List<Alert> AlertsSpotted = new ArrayList<>();
-        for (int i = 1; i < data_ECG.size(); i++) {
-            double heartRate = data_ECG.get(i).getMeasurementValue();
-            if(heartRate < 50 || heartRate > 100) {
-                Alert alert = new Alert( patient.getId()+"","Abnormal Heart Rate detected",data_ECG.get(i).getTimestamp());
-                AlertsSpotted.add(alert);
+        List<Alert> alerts = new ArrayList<>();
+
+        // Abnormal Heart Rate Detection
+        int windowStart = 0;
+        for (int i = 0; i < ecgData.size(); i++) {
+            // Check if window is filled
+            if (i >= windowSize - 1) {
+                // Calculate BPM within the window
+                double bpm = calculateBPM(ecgData.subList(windowStart, i + 1));
+
+                // Check for abnormal heart rate
+                if (bpm < heartRateLowerBound || bpm > heartRateUpperBound) {
+                    PatientRecord record = ecgData.get(i);
+                    Alert alert = new Alert(patient.getId() + "", "Abnormal Heart Rate "+bpm, record.getTimestamp());
+                    alerts.add(alert);
+                }
+                // Move the window by one data point
+                windowStart++;
             }
         }
-        int takenIntoAccount;
-        for (int i = 0; i <= data_ECG.size() - windowSize; i++) {
-            takenIntoAccount=0;
-            double sum = 0;
-            double variance = 0;
-            for (int j = i; j < i + windowSize; j++) {
-                if (data_ECG.get(i).getTimestamp() - data_ECG.get(j).getTimestamp() >= window_time_minutes * 60 * 1000) {
-                    sum += data_ECG.get(j).getMeasurementValue();
 
-                    takenIntoAccount++;
-                }
-            }
-            //too little data in time interval
-            if(takenIntoAccount<5){
-                break;
-            }
-            double avarage = sum/takenIntoAccount;
-            for(int k = i; k < i + windowSize; k++) {
-                if (data_ECG.get(i).getTimestamp() - data_ECG.get(k).getTimestamp() >= window_time_minutes * 60 * 1000) {
-                    variance += Math.pow(data_ECG.get(k).getMeasurementValue() - avarage, 2);
-                }
-            }
-            variance = variance/takenIntoAccount;
-            double treshold =  avarage -2*Math.sqrt(variance);
-            // if measurement is 2 variances away the patient could be in dangerous state
-            for(int d = i; d < i + windowSize; d++) {
-                if (data_ECG.get(i).getTimestamp() - data_ECG.get(d).getTimestamp() >= window_time_minutes * 60 * 1000) {
-                    if(treshold<Math.abs(data_ECG.get(d).getMeasurementValue())){
-                        Alert alert = new Alert( patient.getId()+"","Irregular beat pattern detected",data_ECG.get(d).getTimestamp());
-                        AlertsSpotted.add(alert);
-                    }
-                }
-            }
-
+        // Irregular Beat Pattern Detection
+        double[] intervals = new double[ecgData.size() - 1];
+        for (int i = 0; i < ecgData.size() - 1; i++) {
+            intervals[i] = ecgData.get(i + 1).getTimestamp() - ecgData.get(i).getTimestamp();
         }
 
-            //movingAverages[i] = sum / windowSize;
+        double mean = Arrays.stream(intervals).average().orElse(0.0);
+        double variance = Arrays.stream(intervals).map(i -> Math.pow(i - mean, 2)).average().orElse(0.0);
+        double standardDeviation = Math.sqrt(variance);
+
+        for (int i = 0; i < intervals.length; i++) {
+            if (Math.abs(intervals[i] - mean) > varianceMultiplier * standardDeviation) {
+                PatientRecord record = ecgData.get(i + 1);
+                Alert alert = new Alert(patient.getId() + "", "Irregular Beat Pattern", record.getTimestamp());
+                alerts.add(alert);
+                //System.out.println("mean: "+ mean+" variance:"+ variance+" standardDeviation: "+standardDeviation + "Math.abs(intervals[i] - mean) > varianceMultiplier * standardDeviation: "+(Math.abs(intervals[i] - mean) > varianceMultiplier * standardDeviation));
+            }
+        }
 
 
-        return AlertsSpotted;
+        return alerts;
     }
 
     /**
-     * Replaces alerts and by new compound alert
+     * Calculates BPM for patient in specified time window
+     * @param ecgData
+     * @return
+     */
+    public  double calculateBPM(List<PatientRecord> ecgData) {
+        if (ecgData.isEmpty()) {
+            return 0;
+        }
+        long startTime = ecgData.get(0).getTimestamp();
+        long endTime = ecgData.get(ecgData.size() - 1).getTimestamp();
+        double durationMinutes = (endTime - startTime) / (1000.0 * 60.0);
+        if (durationMinutes == 0) {
+            return 0; // Prevent division by zero
+        }
+        //System.out.println(ecgData.size() / durationMinutes);
+        return (ecgData.size() / durationMinutes); // returns bpm
+    }
+    /**
+     *  Creates compound alert  based on timeInterval, and given alerts
      * @param patient patient object
      * @param alert1
      * @param alert2
      * @param timeInterval
      * @param compoundAlertName
-     * @return
+     * @return List<Alert>
      */
     private List<Alert> checkCompoundAlerts(Patient patient,String alert1,String alert2,double timeInterval,String compoundAlertName){
+        // List to store the alerts that meet certain conditions
         List<Alert> AlertsSpotted = new ArrayList<>();
+
+        // Filtering alerts based on specific conditions
         List<Alert> filteredList = alerts.stream()
                 .filter(alert -> alert.getCondition().equals(alert1) || alert.getCondition().equals(alert2))
                 .collect(Collectors.toList());
+
+        // Sorting the filtered alerts by timestamp
         List<Alert> sortedFilteredAlerts = filteredList.stream()
                 .sorted(Comparator.comparing(Alert::getTimestamp))
                 .collect(Collectors.toList());
 
+        // Iterating through the sorted filtered alerts to find consecutive alerts within a time interval
         for (int i = 0; i < sortedFilteredAlerts.size() - 1; i++) {
             long currentTimestamp = sortedFilteredAlerts.get(i).getTimestamp();
             long nextTimestamp = sortedFilteredAlerts.get(i + 1).getTimestamp();
-            if (nextTimestamp - currentTimestamp <=timeInterval* 60 * 1000) {
+
+            // Checking if the time difference between consecutive alerts is within the specified time interval
+            if (nextTimestamp - currentTimestamp <= timeInterval * 60 * 1000) {
+                // Removing the consecutive alerts from the main alerts list
                 this.alerts.remove(sortedFilteredAlerts.get(i));
-                this.alerts.remove(sortedFilteredAlerts.get(i+1));
-                Alert alert = new Alert( patient.getId()+"",compoundAlertName,currentTimestamp);
+                this.alerts.remove(sortedFilteredAlerts.get(i + 1));
+
+                // Creating a new compound alert and adding it to the list of spotted alerts
+                Alert alert = new Alert(patient.getId() + "", compoundAlertName, currentTimestamp);
                 AlertsSpotted.add(alert);
             }
         }
@@ -353,47 +385,44 @@ public class AlertGenerator {
     }
 
     /**
-     * Triggers an alert for the monitoring system. This method can be extended to
-     * notify medical staff, log the alert, or perform other actions. The method
-     * currently assumes that the alert information is fully formed when passed as
-     * an argument.
-     *
-     * @param alert the alert object containing details about the alert condition
+     * Removes all repeating same category alerts , informs staff about only the oldest unresolved alert
+     * @param alerts the list of alerts for one user
      */
-    private void triggerAlert(Alert alert) {
-     System.out.println("Alert:");
-     System.out.println(alert.getPatientId()+" "+ alert.getCondition()+" "+ alert.getTimestamp());
+    private void triggerAlerts(List<Alert> alerts) {
+        Map<String, Alert> alertMap = new HashMap<>();
+
+        // Iterate through the alerts
+        for (Alert alert : alerts) {
+            if(!(alertMap.containsKey(alert.getCondition()))){
+                alertMap.put(alert.getCondition(),alert);
+            }
+         }
+        // Notify staff about alert
+        for(Alert alert : alertMap.values()){
+            System.out.println("Alert:");
+            System.out.println(alert.getPatientId()+" "+ alert.getCondition()+" "+ alert.getTimestamp());
+        }
+
     }
 
+    /**
+     * Testing method
+     */
     public List<Alert> getAlerts_Junit(){
         return this.alerts;
     }
 
 
 
-    public static void main(String[] args){
-        DataStorage storage = new DataStorage();
-        AlertGenerator alertGenerator = new AlertGenerator(storage);
+    public static void main(String[] args) throws IOException {
 
-        // how to take care of ECG values???
-        // how to transform them into BMP???
-        storage.addPatientData(1, 0.6099302683076968, "ECG", 1715178774510L);
-        storage.addPatientData(1, 0.18189252946664133, "ECG", 1715178775512L);
-        storage.addPatientData(1, 0.28493005767359203, "ECG", 1715178776522L);
-        storage.addPatientData(1, 0.2705057971260119, "ECG", 1715178777521L);
-        storage.addPatientData(1, -0.6143246583976606, "ECG", 1715178778517L);
-        storage.addPatientData(1, -0.5040335019366801, "ECG", 1715178779520L);
-        storage.addPatientData(1, 0.45778429862016323, "ECG", 1715178780519L);
-        storage.addPatientData(1, -0.0032713216698692996, "ECG",1715178781517L);
-        storage.addPatientData(1, 0.21932113839759076, "ECG", 1715178782521L);
-        storage.addPatientData(1, -0.5126986621406572, "ECG", 1715178783514L);
-        storage.addPatientData(1, 0.3023332642800313, "ECG", 1715178784515L);
-        storage.addPatientData(1, -0.5021229515606025, "ECG", 1715178785520L);
-        storage.addPatientData(1, 0.2662856718090292, "ECG", 1715178786521L);
-        storage.addPatientData(1, -0.05253255057103075, "ECG", 1715178787517L);
+        DataStorage storage = new DataStorage();
+        FilesReader s = new FilesReader("C:\\Users\\kordi\\IdeaProjects\\signal_project\\src\\test\\java\\data_management\\testFiles");
+        s.readData(storage);
+        AlertGenerator alertGenerator = new AlertGenerator(storage);
 
 
         alertGenerator.evaluateData(storage.getPatient(1));
-        System.out.println(alertGenerator.getAlerts_Junit());
+        alertGenerator.evaluateData(storage.getPatient(2));
     }
 }

@@ -3,17 +3,20 @@ package data_management;
 import com.alerts.Alert;
 import com.alerts.AlertGenerator;
 import com.data_management.DataStorage;
+import com.data_management.FilesReader;
 import com.data_management.PatientRecord;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 class EvaluateDataTest {
     // Helper method for Alert check
@@ -320,8 +323,120 @@ class EvaluateDataTest {
         alertsTests.add(alert);
 
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests), "Hypotensive Hypoxemia not diagnosed");
+        assertTrue(alertListsAreEqual(alerts,alertsTests), "Triggered Alert not forwarded to staff");
     }
+
+    /**
+     *
+     * ECG test
+     * Healthy patient
+     */
+    @Test
+    void  ECG_test_1() {
+        DataStorage storage = new DataStorage();
+        AlertGenerator alertGenerator = new AlertGenerator(storage);
+
+        // staff alert
+        storage.addPatientData(1,  -0.45947993431497647, "ECG",1716579044014L);
+        storage.addPatientData(1,  0.751036609873168, "ECG", 1716579045024L);
+        storage.addPatientData( 1,  0.7715715261423168, "ECG", 1716579046022L);
+        storage.addPatientData(1,  0.2134302739543229, "ECG", 1716579047014L);
+        storage.addPatientData(1,  -0.38711157663843443, "ECG",1716579048020L);
+        storage.addPatientData(1,  0.5323740342562988, "ECG", 1716579049013L);
+        storage.addPatientData(1,  0.758495186616306, "ECG", 1716579050022L);
+        storage.addPatientData(1,  0.4548244972706137, "ECG",1716579051021L);
+        storage.addPatientData(1,  -0.4802269932870855, "ECG", 1716579052015L);
+        storage.addPatientData(1,  -0.1802198165576428, "ECG", 1716579053024L);
+        storage.addPatientData(1,  0.27809302908830535, "ECG", 1716579054020L);
+        storage.addPatientData(1,  -0.4515193182467387, "ECG", 1716579055020L);
+        storage.addPatientData(1,  0.18144082417659804, "ECG", 1716579056015L);
+        storage.addPatientData(1,  0.7485106543877843, "ECG", 1716579057023L);
+
+        // Generated alerts for patients
+        alertGenerator.evaluateData(storage.getPatient(1));
+        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+
+        // Expected alerts for patients
+        List<Alert> alertsTests = new ArrayList<>();
+         //  (none)
+
+        // test if Expected alerts match with generated ones
+        assertTrue(alertListsAreEqual(alerts,alertsTests), "Wrong diagnosis of not dangerous state");
+    }
+    /**
+     *
+     * ECG test
+     * Healthy patient large dataset
+     */
+    @Test
+    void  ECG_test_2() throws IOException {
+        DataStorage storage = new DataStorage();
+        FilesReader s = new FilesReader("src/test/java/data_management/testFiles/ECG_test_2");
+        s.readData(storage);
+        AlertGenerator alertGenerator = new AlertGenerator(storage);
+
+        // Generated alerts for patients
+        alertGenerator.evaluateData(storage.getPatient(1));
+        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+
+        // Expected alerts for patients
+        List<Alert> alertsTests = new ArrayList<>();
+        //  (none)
+
+        // test if Expected alerts match with generated ones
+        assertTrue(alertListsAreEqual(alerts,alertsTests), "Wrong diagnosis of not dangerous state or file wrongly read");
+    }
+    /**
+     *
+     * ECG test
+     * Irregular beat pattern
+     */
+    @Test
+    void  ECG_test_3() throws IOException {
+        DataStorage storage = new DataStorage();
+        FilesReader s = new FilesReader("src/test/java/data_management/testFiles/ECG_test_3");
+        s.readData(storage);
+        AlertGenerator alertGenerator = new AlertGenerator(storage);
+
+        // Generated alerts for patients
+        alertGenerator.evaluateData(storage.getPatient(1));
+        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+
+        // Expected alerts for patients
+        List<Alert> alertsTests = new ArrayList<>();
+        Alert alert = new Alert("1","Irregular Beat Pattern",1716652940427L);
+        alertsTests.add(alert);
+
+
+        // test if Expected alerts match with generated ones
+        assertTrue(alertListsAreEqual(alerts,alertsTests), "no alert for Irregular Beat Pattern");
+    }
+    /**
+     *
+     * ECG test
+     * Abnormal beat pattern
+     */
+    @Test
+    void  ECG_test_4() throws IOException {
+        DataStorage storage = new DataStorage();
+        FilesReader s = new FilesReader("src/test/java/data_management/testFiles/ECG_test_3");
+        s.readData(storage);
+        AlertGenerator alertGenerator = new AlertGenerator(storage);
+
+        // Generated alerts for patients
+        alertGenerator.evaluateData(storage.getPatient(1));
+        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+
+        // Expected alerts for patients
+        List<Alert> alertsTests = new ArrayList<>();
+        Alert alert = new Alert("1","Irregular Beat Pattern",1716652940427L);
+        alertsTests.add(alert);
+
+
+        // test if Expected alerts match with generated ones
+        assertTrue(alertListsAreEqual(alerts,alertsTests), "no alert for Irregular Beat Pattern");
+    }
+
 }
 
 
