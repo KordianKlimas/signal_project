@@ -5,15 +5,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-
 import com.alerts.AlertGenerator;
 import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.drafts.Draft;
-import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.handshake.ServerHandshake;
 
-import javax.xml.crypto.Data;
 
 /**
  * The WebSocketReader class extends WebSocketClient and implements DataReader to read and process data from a WebSocket server.
@@ -28,9 +23,11 @@ public class WebSocketReader  extends WebSocketClient implements DataReader {
      * @param serverURI The URI of the WebSocket server.
      * @throws URISyntaxException If the provided URI is invalid.
      */
-    public WebSocketReader(URI serverURI) {
+    public WebSocketReader(URI serverURI, DataStorage dataStorage) {
         super(serverURI);
+        this.dataStorage = dataStorage;
     }
+
 
     /**
      * Reads data and sets the DataStorage object.
@@ -97,7 +94,7 @@ public class WebSocketReader  extends WebSocketClient implements DataReader {
                     measurement = Double.parseDouble(parts[3]);
                 }
 
-                dataStorage.addPatientData(patientId,measurement,parts[2],timestamp);
+                this.dataStorage.addPatientData(patientId,measurement,parts[2],timestamp);
             } catch (NumberFormatException e) {
                 System.err.println("unsupported message received (WebSocketReader: "+message);
             }
@@ -134,7 +131,7 @@ public class WebSocketReader  extends WebSocketClient implements DataReader {
 
     public static  void main(String[] args) throws IOException, URISyntaxException {
         DataStorage s = new DataStorage();
-        WebSocketReader w = new WebSocketReader(new URI("ws://localhost:8080"));
+        WebSocketReader w = new WebSocketReader(new URI("ws://localhost:8080"),s);
         w.readData(s);
         System.out.println("evaulate data:");
         AlertGenerator alertGenerator = new AlertGenerator(s);
