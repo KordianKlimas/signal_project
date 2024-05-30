@@ -21,7 +21,6 @@ public class WebSocketReader  extends WebSocketClient implements DataReader {
      * Constructor for WebSocketReader.
      *
      * @param serverURI The URI of the WebSocket server.
-     * @throws URISyntaxException If the provided URI is invalid.
      */
     public WebSocketReader(URI serverURI, DataStorage dataStorage) {
         super(serverURI);
@@ -37,7 +36,7 @@ public class WebSocketReader  extends WebSocketClient implements DataReader {
      * @throws URISyntaxException If a URI syntax error occurs.
      */
     @Override
-    public void readData(DataStorage dataStorage) throws IOException, URISyntaxException {
+    public void readData(DataStorage dataStorage)  {
         this.dataStorage = dataStorage;
         this.connect();
     }
