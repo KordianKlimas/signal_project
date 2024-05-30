@@ -32,8 +32,6 @@ public class WebSocketReader  extends WebSocketClient implements DataReader {
      * Reads data and sets the DataStorage object.
      *
      * @param dataStorage The DataStorage object to store patient data.
-     * @throws IOException If an I/O error occurs.
-     * @throws URISyntaxException If a URI syntax error occurs.
      */
     @Override
     public void readData(DataStorage dataStorage)  {
@@ -128,7 +126,7 @@ public class WebSocketReader  extends WebSocketClient implements DataReader {
     }
 
 
-    public static  void main(String[] args) throws IOException, URISyntaxException {
+    public static  void main(String[] args) throws  URISyntaxException {
         DataStorage s = new DataStorage();
         WebSocketReader w = new WebSocketReader(new URI("ws://localhost:8080"),s);
         w.readData(s);
