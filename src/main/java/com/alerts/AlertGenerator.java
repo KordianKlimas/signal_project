@@ -422,7 +422,6 @@ public class AlertGenerator {
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
 
-        alertGenerator.evaluateData(storage.getPatient(1));
-        alertGenerator.evaluateData(storage.getPatient(2));
+        alertGenerator.evaluateData(storage.getPatient(17));
     }
 }
