@@ -30,11 +30,11 @@ import java.util.ArrayList;
  */
 public class HealthDataSimulator {
 
-    private static int patientCount = 50; // Default number of patients
+    private static int patientCount = 100; // Default number of patients
     private static ScheduledExecutorService scheduler;
 
-   //  private static OutputStrategy outputStrategy = new FileOutputStrategy("src/test/java/data_management/testFiles"); // Default output strategy
-    private static OutputStrategy outputStrategy = new WebSocketOutputStrategy(8080);
+    private static OutputStrategy outputStrategy = new FileOutputStrategy("src/test/java/data_management/testFiles"); // Default output strategy
+    //private static OutputStrategy outputStrategy = new WebSocketOutputStrategy(8080);
     private static final Random random = new Random();
 
     public static void main(String[] args) throws IOException {

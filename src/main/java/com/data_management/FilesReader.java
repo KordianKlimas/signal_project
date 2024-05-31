@@ -22,7 +22,7 @@ import java.util.List;
  */
 
 public class FilesReader implements DataReader {
-    String Base_directory;
+    public String Base_directory;
 
     /**
      * Allows to import data from files in the Base_directory  directory to specified dataStorage
@@ -90,7 +90,7 @@ public class FilesReader implements DataReader {
     }
 
     /**
-     * Parsec measurement data according to the label.
+     * Parses measurement data according to the label.
      * @param parts Line of data from file
      * @return measurementValue
      */
@@ -123,9 +123,9 @@ public class FilesReader implements DataReader {
             DataStorage storage = new DataStorage();
 
             s.readData(storage);
-     //       for(PatientRecord re : storage.getAllRecords(1)){
-     //           System.out.println(re.getRecordType());
-     //       }
+           for(PatientRecord re : storage.getAllRecords(1)){
+               System.out.println(re.getRecordType());
+           }
 
 
         } catch (IOException e) {

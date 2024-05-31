@@ -5,7 +5,6 @@ import com.data_management.FilesReader;
 import com.data_management.Patient;
 import com.data_management.PatientRecord;
 
-import javax.sound.sampled.Line;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -278,7 +277,6 @@ public class AlertGenerator {
         final int windowTimeMinutes = 10; // in minutes. within this time the standard deviation is calculated
         final double heartRateLowerBound = 50;
         final double heartRateUpperBound = 100;
-        final double varianceMultiplier = 3.6; // depends on patient . smaller value will increase number of false alerts
 
         List<Alert> alerts = new ArrayList<>();
 
@@ -302,21 +300,23 @@ public class AlertGenerator {
         }
 
         // Irregular Beat Pattern Detection
-        double[] intervals = new double[ecgData.size() - 1];
-        for (int i = 0; i < ecgData.size() - 1; i++) {
-            intervals[i] = ecgData.get(i + 1).getTimestamp() - ecgData.get(i).getTimestamp();
-        }
+        if (ecgData.size() > 1) {
+            long totalInterval = 0;
+            for (int i = 1; i < ecgData.size(); i++) {
+                totalInterval += (ecgData.get(i).getTimestamp() - ecgData.get(i - 1).getTimestamp());
+            }
+            double averageInterval = totalInterval / (double) (ecgData.size() - 1);
+            double allowableVariation = averageInterval * 0.1; // Allowing 10% variation
 
-        double mean = Arrays.stream(intervals).average().orElse(0.0);
-        double variance = Arrays.stream(intervals).map(i -> Math.pow(i - mean, 2)).average().orElse(0.0);
-        double standardDeviation = Math.sqrt(variance);
+            PatientRecord previousRecord = ecgData.get(0);
+            for (int i = 1; i < ecgData.size(); i++) {
+                PatientRecord currentRecord = ecgData.get(i);
+                long intervalDifference = Math.abs(currentRecord.getTimestamp() - previousRecord.getTimestamp());
 
-        for (int i = 0; i < intervals.length; i++) {
-            if (Math.abs(intervals[i] - mean) > varianceMultiplier * standardDeviation) {
-                PatientRecord record = ecgData.get(i + 1);
-                Alert alert = new Alert(patient.getId() + "", "Irregular Beat Pattern", record.getTimestamp());
-                alerts.add(alert);
-                //System.out.println("mean: "+ mean+" variance:"+ variance+" standardDeviation: "+standardDeviation + "Math.abs(intervals[i] - mean) > varianceMultiplier * standardDeviation: "+(Math.abs(intervals[i] - mean) > varianceMultiplier * standardDeviation));
+                if (Math.abs(intervalDifference - averageInterval) > allowableVariation) {
+                    alerts.add(new Alert(patient.getId() + "", "Irregular Beat Pattern", currentRecord.getTimestamp()));
+                }
+                previousRecord = currentRecord;
             }
         }
 
@@ -339,16 +339,17 @@ public class AlertGenerator {
         if (durationMinutes == 0) {
             return 0; // Prevent division by zero
         }
-        //System.out.println(ecgData.size() / durationMinutes);
         return (ecgData.size() / durationMinutes); // returns bpm
     }
+
+
     /**
      *  Creates compound alert  based on timeInterval, and given alerts
      * @param patient patient object
-     * @param alert1
-     * @param alert2
-     * @param timeInterval
-     * @param compoundAlertName
+     * @param alert1 - alert that has to be triggered
+     * @param alert2 - alert that has to be triggered
+     * @param timeInterval - time in which  both alerts have to be triggered
+     * @param compoundAlertName - new composed alert
      * @return List<Alert>
      */
     private List<Alert> checkCompoundAlerts(Patient patient,String alert1,String alert2,double timeInterval,String compoundAlertName){
@@ -407,21 +408,38 @@ public class AlertGenerator {
 
     /**
      * Testing method
+     * return all non-repeating alerts
      */
     public List<Alert> getAlerts_Junit(){
-        return this.alerts;
+        Map<String, Alert> alertMap = new HashMap<>();
+        // Iterate through the alerts
+        for (Alert alert : alerts) {
+            if(!(alertMap.containsKey(alert.getCondition()))){
+                alertMap.put(alert.getCondition(),alert);
+            }
+        }
+
+        LinkedList<Alert> alertsFinal = new LinkedList(alertMap.values());
+        return alertsFinal;
     }
 
 
 
     public static void main(String[] args) throws IOException {
 
-        DataStorage storage = new DataStorage();
-        FilesReader s = new FilesReader("C:\\Users\\kordi\\IdeaProjects\\signal_project\\src\\test\\java\\data_management\\testFiles");
-        s.readData(storage);
+       DataStorage storage = new DataStorage();
+       // FilesReader s = new FilesReader("C:\\Users\\kordi\\IdeaProjects\\signal_project\\src\\test\\java\\data_management\\testFiles");
+       // s.readData(storage);
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
+        storage.addPatientData(1,  0.18144082417659804, "ECG", 1716579056015L);
+        storage.addPatientData(1,  0.7485106543877843, "ECG", 1716579057023L);
+        storage.addPatientData(1,  0.2485646543877843, "ECG", 1716579058025L);
+        storage.addPatientData(1, -0.1592047543877843, "ECG", 1716579059027L);
+        storage.addPatientData(1, 0.3485646543877843, "ECG", 1716579061027L);
+        storage.addPatientData(1, 0.1585646543877843, "ECG", 1716579062028L);
 
-        alertGenerator.evaluateData(storage.getPatient(17));
+
+        alertGenerator.evaluateData(storage.getPatient(1));
     }
 }

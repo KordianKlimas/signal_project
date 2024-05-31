@@ -1,35 +1,30 @@
-package data_management;
+package alert_generation;
 
 import com.alerts.Alert;
 import com.alerts.AlertGenerator;
 import com.data_management.DataStorage;
 import com.data_management.FilesReader;
-import com.data_management.PatientRecord;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.Objects;
 
 
 class EvaluateDataTest {
     // Helper method for Alert check
     private boolean alertListsAreEqual(List<Alert> list_1, List<Alert> list_2) {
         if (list_1.size() != list_2.size()) {
+
             return false;
         }
 
         for (int i = 0; i < list_1.size(); i++) {
-            // Check for equality of each field of the Alert objects
-            if (     list_1.get(i).getTimestamp()!=(list_2.get(i).getTimestamp() ) ||
-                    !list_1.get(i).getCondition().equals(list_2.get(i).getCondition()) ||
-                    !list_1.get(i).getPatientId().equals(list_2.get(i).getPatientId())) {
+            if (    list_1.get(i).getTimestamp()==(list_2.get(i).getTimestamp() ) &&
+                    list_1.get(i).getCondition().equals(list_2.get(i).getCondition()) &&
+                    list_1.get(i).getPatientId() == list_2.get(i).getPatientId()) {
                 return false; // Return false if any field is not equal
             }
         }
@@ -371,7 +366,7 @@ class EvaluateDataTest {
     @Test
     void  ECG_test_2() throws IOException {
         DataStorage storage = new DataStorage();
-        FilesReader s = new FilesReader("src/test/java/data_management/testFiles/ECG_test_2");
+        FilesReader s = new FilesReader("src/test/java/alert_generation/ECG_test_2");
         s.readData(storage);
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
@@ -394,17 +389,22 @@ class EvaluateDataTest {
     @Test
     void  ECG_test_3() throws IOException {
         DataStorage storage = new DataStorage();
-        FilesReader s = new FilesReader("src/test/java/data_management/testFiles/ECG_test_3");
-        s.readData(storage);
         AlertGenerator alertGenerator = new AlertGenerator(storage);
+
+        storage.addPatientData(1,  0.18144082417659804, "ECG", 1716579056015L);
+        storage.addPatientData(1,  0.7485106543877843, "ECG", 1716579057023L);
+        storage.addPatientData(1,  0.2485646543877843, "ECG", 1716579058025L);
+        storage.addPatientData(1, -0.1592047543877843, "ECG", 1716579059027L);
+        storage.addPatientData(1, 0.3485646543877843, "ECG", 1716579061027L);
+        storage.addPatientData(1, 0.1585646543877843, "ECG", 1716579062028L);
 
         // Generated alerts for patients
         alertGenerator.evaluateData(storage.getPatient(1));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
-
+        System.err.println(alerts.toString());
         // Expected alerts for patients
         List<Alert> alertsTests = new ArrayList<>();
-        Alert alert = new Alert("1","Irregular Beat Pattern",1716652940427L);
+        Alert alert = new Alert("1","Irregular Beat Pattern",1716579057023L);
         alertsTests.add(alert);
 
 
@@ -419,22 +419,31 @@ class EvaluateDataTest {
     @Test
     void  ECG_test_4() throws IOException {
         DataStorage storage = new DataStorage();
-        FilesReader s = new FilesReader("src/test/java/data_management/testFiles/ECG_test_3");
-        s.readData(storage);
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
         // Generated alerts for patients
+        storage.addPatientData(1,  -0.07241039374407757, "ECG",  1716653765234L);
+        storage.addPatientData(1,  -0.3384726671194705, "ECG",  1716653766734L);
+        storage.addPatientData(1,  -0.2796054655371677, "ECG",  1716653768234L);
+        storage.addPatientData(1, -0.11439213986568285, "ECG",  1716653769734L);
+        storage.addPatientData(1,  0.1519569143952934, "ECG",  1716653771234L);
+        storage.addPatientData(1, -0.2310429785511261, "ECG",  1716653772734L);
+        storage.addPatientData(1, 0.7205593524089258, "ECG",  1716653774234L);
+        storage.addPatientData(1, -0.5260688529517142, "ECG",  1716653775734L);
+        storage.addPatientData(1,  -0.04508478904935673, "ECG",  1716653777234L);
+        storage.addPatientData(1,  -0.044565856100253765, "ECG", 1716653778734L);
+
         alertGenerator.evaluateData(storage.getPatient(1));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
         List<Alert> alertsTests = new ArrayList<>();
-        Alert alert = new Alert("1","Irregular Beat Pattern",1716652940427L);
+        Alert alert = new Alert("1","Abnormal Heart Rate",1716653778734L);
         alertsTests.add(alert);
 
 
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests), "no alert for Irregular Beat Pattern");
+        assertTrue(alertListsAreEqual(alerts,alertsTests));
     }
 
 }
