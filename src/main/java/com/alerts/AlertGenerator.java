@@ -114,6 +114,8 @@ public class AlertGenerator {
      * @param data_SystolicPressure
      */
     private List<Alert> checkBloodPressure(Patient patient,LinkedList<PatientRecord> data_DiastolicPressure,LinkedList<PatientRecord> data_SystolicPressure ){
+
+
         //trend alert for DiastolicPressure
         final double TrendThreshold = 10; //  10mmHG increase/decrease
         final int TrendReadings= 3; // Trigger an alert if the patient's blood pressure (systolic or diastolic) shows a consistent increase or decrease across three consecutive readings
@@ -291,7 +293,7 @@ public class AlertGenerator {
                 // Check for abnormal heart rate
                 if (bpm < heartRateLowerBound || bpm > heartRateUpperBound) {
                     PatientRecord record = ecgData.get(i);
-                    Alert alert = new Alert(patient.getId() + "", "Abnormal Heart Rate "+bpm, record.getTimestamp());
+                    Alert alert = new Alert(patient.getId() + "", "Abnormal Heart Rate", record.getTimestamp());
                     alerts.add(alert);
                 }
                 // Move the window by one data point
@@ -432,14 +434,14 @@ public class AlertGenerator {
        // s.readData(storage);
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
-        storage.addPatientData(1,  0.18144082417659804, "ECG", 1716579056015L);
-        storage.addPatientData(1,  0.7485106543877843, "ECG", 1716579057023L);
-        storage.addPatientData(1,  0.2485646543877843, "ECG", 1716579058025L);
-        storage.addPatientData(1, -0.1592047543877843, "ECG", 1716579059027L);
-        storage.addPatientData(1, 0.3485646543877843, "ECG", 1716579061027L);
-        storage.addPatientData(1, 0.1585646543877843, "ECG", 1716579062028L);
+        storage.addPatientData("1",  0.18144082417659804, "ECG", 1716579056015L);
+        storage.addPatientData("1",  0.7485106543877843, "ECG", 1716579057023L);
+        storage.addPatientData("1",  0.2485646543877843, "ECG", 1716579058025L);
+        storage.addPatientData("1", -0.1592047543877843, "ECG", 1716579059027L);
+        storage.addPatientData("1", 0.3485646543877843, "ECG", 1716579061027L);
+        storage.addPatientData("1", 0.1585646543877843, "ECG", 1716579062028L);
 
 
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
     }
 }

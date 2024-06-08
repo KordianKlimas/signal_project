@@ -72,7 +72,7 @@ public class WebSocketReader  extends WebSocketClient implements DataReader {
 
         if(parts.length == 4){
             try {
-                int patientId = Integer.parseInt(parts[0]);
+                String patientId = (parts[0]);
                 long timestamp = Long.parseLong(parts[1]);
                 double measurement;
                 // removes % from measurement value

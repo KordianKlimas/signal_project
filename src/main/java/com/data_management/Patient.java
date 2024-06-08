@@ -10,7 +10,7 @@ import java.util.List;
  * of medical records based on specified criteria.
  */
 public class Patient {
-    private int patientId;
+    private String patientId;
     private List<PatientRecord> patientRecords;
 
     /**
@@ -19,7 +19,7 @@ public class Patient {
      *
      * @param patientId the unique identifier for the patient
      */
-    public Patient(int patientId) {
+    public Patient(String patientId) {
         this.patientId = patientId;
         this.patientRecords = new ArrayList<>();
     }
@@ -70,7 +70,7 @@ public class Patient {
         return patientRecords;
     }
 
-    public int getId(){
+    public String getId(){
         return patientId;
     }
 }

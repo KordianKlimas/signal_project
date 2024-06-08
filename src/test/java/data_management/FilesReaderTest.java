@@ -22,7 +22,7 @@ public class FilesReaderTest {
         for (int i = 0; i < list_1.size(); i++) {
             if (list_1.get(i).getTimestamp() != list_2.get(i).getTimestamp() ||
                     !list_1.get(i).getRecordType().equals(list_2.get(i).getRecordType()) ||
-                    list_1.get(i).getPatientId() != list_2.get(i).getPatientId()) {
+                    !list_1.get(i).getPatientId().equals(list_2.get(i).getPatientId())) {
                 return false; // Return false if any field is not equal
             }
         }
@@ -54,22 +54,22 @@ public class FilesReaderTest {
             recordsFromFiles.addAll(patient.getAllRecords());
         }
 
-        recordsTest.add(new PatientRecord(81, 194.74342822136995, "Cholesterol", 1717097371814L));
-        recordsTest.add(new PatientRecord(63, 163.11083683653274, "Cholesterol", 1717097371812L));
-        recordsTest.add(new PatientRecord(42, 1, "Alert", 1717097371869L));
-        recordsTest.add(new PatientRecord(15, 1, "Alert", 1717097372795L));
-        recordsTest.add(new PatientRecord(39, 83.0, "DiastolicPressure", 1717097371846L));
-        recordsTest.add(new PatientRecord(66, 79.0, "DiastolicPressure", 1717097371846L));
-        recordsTest.add(new PatientRecord(55, -0.21531770140330428, "ECG", 1717097371797L));
-        recordsTest.add(new PatientRecord(62, -0.34126031661753264, "ECG", 1717097371813L));
-        recordsTest.add(new PatientRecord(59, 5.676784759217333, "RedBloodCells", 1717097371849L));
-        recordsTest.add(new PatientRecord(63, 5.734493484478322, "RedBloodCells", 1717097371849L));
-        recordsTest.add(new PatientRecord(50, 95.0, "Saturation", 1717097371841L));
-        recordsTest.add(new PatientRecord(93, 96.0, "Saturation", 1717097371815L));
-        recordsTest.add(new PatientRecord(66, 110.0, "SystolicPressure", 1717097371798L));
-        recordsTest.add(new PatientRecord(39, 120.0, "SystolicPressure", 1717097371807L));
-        recordsTest.add(new PatientRecord(59, 8.408776292155478, "WhiteBloodCells", 1717097371847L));
-        recordsTest.add(new PatientRecord(63, 9.559679464627013, "WhiteBloodCells", 1717097371847L));
+        recordsTest.add(new PatientRecord("81", 194.74342822136995, "Cholesterol", 1717097371814L));
+        recordsTest.add(new PatientRecord("63", 163.11083683653274, "Cholesterol", 1717097371812L));
+        recordsTest.add(new PatientRecord("42", 1, "Alert", 1717097371869L));
+        recordsTest.add(new PatientRecord("15", 1, "Alert", 1717097372795L));
+        recordsTest.add(new PatientRecord("39", 83.0, "DiastolicPressure", 1717097371846L));
+        recordsTest.add(new PatientRecord("66", 79.0, "DiastolicPressure", 1717097371846L));
+        recordsTest.add(new PatientRecord("55", -0.21531770140330428, "ECG", 1717097371797L));
+        recordsTest.add(new PatientRecord("62", -0.34126031661753264, "ECG", 1717097371813L));
+        recordsTest.add(new PatientRecord("59", 5.676784759217333, "RedBloodCells", 1717097371849L));
+        recordsTest.add(new PatientRecord("63", 5.734493484478322, "RedBloodCells", 1717097371849L));
+        recordsTest.add(new PatientRecord("50", 95.0, "Saturation", 1717097371841L));
+        recordsTest.add(new PatientRecord("93", 96.0, "Saturation", 1717097371815L));
+        recordsTest.add(new PatientRecord("66", 110.0, "SystolicPressure", 1717097371798L));
+        recordsTest.add(new PatientRecord("39", 120.0, "SystolicPressure", 1717097371807L));
+        recordsTest.add(new PatientRecord("59", 8.408776292155478, "WhiteBloodCells", 1717097371847L));
+        recordsTest.add(new PatientRecord("63", 9.559679464627013, "WhiteBloodCells", 1717097371847L));
 
         recordsTest.sort(Comparator.comparing(PatientRecord::getPatientId)
                 .thenComparing(PatientRecord::getRecordType));

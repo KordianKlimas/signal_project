@@ -17,14 +17,13 @@ class EvaluateDataTest {
     // Helper method for Alert check
     private boolean alertListsAreEqual(List<Alert> list_1, List<Alert> list_2) {
         if (list_1.size() != list_2.size()) {
-
             return false;
         }
 
         for (int i = 0; i < list_1.size(); i++) {
-            if (    list_1.get(i).getTimestamp()==(list_2.get(i).getTimestamp() ) &&
+            if (   !( list_1.get(i).getTimestamp()==(list_2.get(i).getTimestamp() ) &&
                     list_1.get(i).getCondition().equals(list_2.get(i).getCondition()) &&
-                    list_1.get(i).getPatientId() == list_2.get(i).getPatientId()) {
+                    list_1.get(i).getPatientId().equals(list_2.get(i).getPatientId()))) {
                 return false; // Return false if any field is not equal
             }
         }
@@ -41,17 +40,17 @@ class EvaluateDataTest {
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
 
-        storage.addPatientData(1, 90, "DiastolicPressure",1714376789050L);
-        storage.addPatientData(1, 101,"DiastolicPressure", 1714376789051L);
-        storage.addPatientData(1, 90, "DiastolicPressure",1714376789052L);
-        storage.addPatientData(1, 102,"DiastolicPressure", 1714376789053L);
+        storage.addPatientData("1", 90, "DiastolicPressure",1714376789050L);
+        storage.addPatientData("1", 101,"DiastolicPressure", 1714376789051L);
+        storage.addPatientData("1", 90, "DiastolicPressure",1714376789052L);
+        storage.addPatientData("1", 102,"DiastolicPressure", 1714376789053L);
 
-        storage.addPatientData(1, 180,"SystolicPressure",   1714376789050L);
-        storage.addPatientData(1, 168, "SystolicPressure",  1714376789051L);
-        storage.addPatientData(1, 180,"SystolicPressure",   1714376789052L);
-        storage.addPatientData(1, 160, "SystolicPressure",  1714376789053L);
+        storage.addPatientData("1", 180,"SystolicPressure",   1714376789050L);
+        storage.addPatientData("1", 168, "SystolicPressure",  1714376789051L);
+        storage.addPatientData("1", 180,"SystolicPressure",   1714376789052L);
+        storage.addPatientData("1", 160, "SystolicPressure",  1714376789053L);
 
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
 
 
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
@@ -68,22 +67,22 @@ class EvaluateDataTest {
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
         // getting alerts from each patient's data evaluation
-        storage.addPatientData(1, 59, "DiastolicPressure",1714376789050L);
-        storage.addPatientData(2, 121,"DiastolicPressure", 1714376789051L);
+        storage.addPatientData("1", 59, "DiastolicPressure",1714376789050L);
+        storage.addPatientData("2", 121,"DiastolicPressure", 1714376789051L);
 
-        storage.addPatientData(3, 89,"SystolicPressure",   1714376789050L);
-        storage.addPatientData(4, 181, "SystolicPressure",  1714376789051L);
+        storage.addPatientData("3", 89,"SystolicPressure",   1714376789050L);
+        storage.addPatientData("4", 181, "SystolicPressure",  1714376789051L);
 
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
 
-        alertGenerator.evaluateData(storage.getPatient(2));
+        alertGenerator.evaluateData(storage.getPatient("2"));
         alerts.addAll(alertGenerator.getAlerts_Junit());
 
-        alertGenerator.evaluateData(storage.getPatient(3));
+        alertGenerator.evaluateData(storage.getPatient("3"));
         alerts.addAll(alertGenerator.getAlerts_Junit());
 
-        alertGenerator.evaluateData(storage.getPatient(4));
+        alertGenerator.evaluateData(storage.getPatient("4"));
         alerts.addAll(alertGenerator.getAlerts_Junit());
 
 
@@ -114,39 +113,38 @@ class EvaluateDataTest {
         // getting alerts from each patient's data evaluation
 
         //decreasing trend
-        storage.addPatientData(1, 90, "SystolicPressure",1714376789050L);
-        storage.addPatientData(1, 101, "SystolicPressure",1714376789051L);
-        storage.addPatientData(1, 112, "SystolicPressure",1714376789052L);
-        storage.addPatientData(1, 123, "SystolicPressure",1714376789053L);
+        storage.addPatientData("1", 90, "SystolicPressure",1714376789050L);
+        storage.addPatientData("1", 101, "SystolicPressure",1714376789051L);
+        storage.addPatientData("1", 112, "SystolicPressure",1714376789052L);
+        storage.addPatientData("1", 123, "SystolicPressure",1714376789053L);
 
 
-        storage.addPatientData(2, 60, "DiastolicPressure",1714376789050L);
-        storage.addPatientData(2, 71, "DiastolicPressure",1714376789051L);
-        storage.addPatientData(2, 82, "DiastolicPressure",1714376789052L);
-        storage.addPatientData(2, 93, "DiastolicPressure",1714376789053L);
+        storage.addPatientData("2", 60, "DiastolicPressure",1714376789050L);
+        storage.addPatientData("2", 71, "DiastolicPressure",1714376789051L);
+        storage.addPatientData("2", 82, "DiastolicPressure",1714376789052L);
+        storage.addPatientData("2", 93, "DiastolicPressure",1714376789053L);
 
         //increasing trend
-        storage.addPatientData(3, 123, "SystolicPressure",1714376789050L);
-        storage.addPatientData(3, 112, "SystolicPressure",1714376789051L);
-        storage.addPatientData(3, 101, "SystolicPressure",1714376789052L);
-        storage.addPatientData(3, 90, "SystolicPressure",1714376789053L);
+        storage.addPatientData("3", 123, "SystolicPressure",1714376789050L);
+        storage.addPatientData("3", 112, "SystolicPressure",1714376789051L);
+        storage.addPatientData("3", 101, "SystolicPressure",1714376789052L);
+        storage.addPatientData("3", 90, "SystolicPressure",1714376789053L);
 
 
-        storage.addPatientData(4, 93, "DiastolicPressure",1714376789050L);
-        storage.addPatientData(4, 82, "DiastolicPressure",1714376789051L);
-        storage.addPatientData(4, 71, "DiastolicPressure",1714376789052L);
-        storage.addPatientData(4, 60, "DiastolicPressure",1714376789053L);
+        storage.addPatientData("4", 93, "DiastolicPressure",1714376789050L);
+        storage.addPatientData("4", 82, "DiastolicPressure",1714376789051L);
+        storage.addPatientData("4", 71, "DiastolicPressure",1714376789052L);
+        storage.addPatientData("4", 60, "DiastolicPressure",1714376789053L);
 
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
 
-        alertGenerator.evaluateData(storage.getPatient(2));
+        alertGenerator.evaluateData(storage.getPatient("2"));
         alerts.addAll(alertGenerator.getAlerts_Junit());
 
-        alertGenerator.evaluateData(storage.getPatient(3));
+        alertGenerator.evaluateData(storage.getPatient("3"));
         alerts.addAll(alertGenerator.getAlerts_Junit());
-
-        alertGenerator.evaluateData(storage.getPatient(4));
+        alertGenerator.evaluateData(storage.getPatient("4"));
         alerts.addAll(alertGenerator.getAlerts_Junit());
 
 
@@ -176,12 +174,12 @@ class EvaluateDataTest {
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
         // not dangerous increase
-        storage.addPatientData(1, 93, "Saturation",1714376789052L);
-        storage.addPatientData(1, 95, "Saturation",1714377089052L);
-        storage.addPatientData(1, 99, "Saturation",1714376249052L);
+        storage.addPatientData("1", 93, "Saturation",1714376789052L);
+        storage.addPatientData("1", 95, "Saturation",1714377089052L);
+        storage.addPatientData("1", 99, "Saturation",1714376249052L);
 
         // Generated alerts for patients
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
@@ -201,13 +199,18 @@ class EvaluateDataTest {
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
         // Evaluating data
-        storage.addPatientData(1, 99, "Saturation",1714376789052L); // minute: 0
-        storage.addPatientData(1, 95, "Saturation",1714377089052L); // minute: 4
-        storage.addPatientData(1, 93, "Saturation",1714376249052L); // minute: 9
-        storage.addPatientData(1, 93, "Saturation",1714376249053L); // minute: 9
+        storage.addPatientData("1", 99, "Saturation",1714376789052L); // minute: 0
+        storage.addPatientData("1", 95, "Saturation",1714377089052L); // minute: 4
+        storage.addPatientData("1", 93, "Saturation",1714376249052L); // minute: 9
+        storage.addPatientData("1", 93, "Saturation",1714376249053L); // minute: 9
         // Generated alerts for patients
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
+
+       //Alert alr = alerts.getFirst();
+       //System.err.println(alr.getPatientId());
+       //System.err.println(alr.getCondition());
+       //System.err.println(alr.getTimestamp());
 
         // Expected alerts for patients
         List<Alert> alertsTests = new ArrayList<>();
@@ -227,13 +230,13 @@ class EvaluateDataTest {
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
         // not dangerous increase
-        storage.addPatientData(1, 99, "Saturation",1714376789052L); // minute: 0
-        storage.addPatientData(1, 99, "Saturation",1714377089052L); // minute: 4
-        storage.addPatientData(1, 99, "Saturation",1714376249052L); // minute: 9
-        storage.addPatientData(1, 92, "Saturation",1714376429052L); // minute: 12
+        storage.addPatientData("1", 99, "Saturation",1714376789052L); // minute: 0
+        storage.addPatientData("1", 99, "Saturation",1714377089052L); // minute: 4
+        storage.addPatientData("1", 99, "Saturation",1714376249052L); // minute: 9
+        storage.addPatientData("1", 92, "Saturation",1714376429052L); // minute: 12
 
         // Generated alerts for patients
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
@@ -255,13 +258,13 @@ class EvaluateDataTest {
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
         // not dangerous increase
-        storage.addPatientData(1, 99, "Saturation",1714376789052L); // minute: 0
-        storage.addPatientData(1, 96, "Saturation",1714377089052L); // minute: 4
-        storage.addPatientData(1, 97, "Saturation",1714376249052L); // minute: 9
-        storage.addPatientData(1, 95, "Saturation",1714376429052L); // minute: 12
+        storage.addPatientData("1", 99, "Saturation",1714376789052L); // minute: 0
+        storage.addPatientData("1", 96, "Saturation",1714377089052L); // minute: 4
+        storage.addPatientData("1", 97, "Saturation",1714376249052L); // minute: 9
+        storage.addPatientData("1", 95, "Saturation",1714376429052L); // minute: 12
 
         // Generated alerts for patients
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
@@ -281,12 +284,12 @@ class EvaluateDataTest {
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
         // not dangerous increase
-        storage.addPatientData(1, 89, "Saturation",1714376789052L); // same time
-        storage.addPatientData(1, 89, "SystolicPressure",1714376789052L);// same time
+        storage.addPatientData("1", 89, "Saturation",1714376789052L); // same time
+        storage.addPatientData("1", 89, "SystolicPressure",1714376789052L);// same time
 
 
         // Generated alerts for patients
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
@@ -306,10 +309,10 @@ class EvaluateDataTest {
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
         // staff alert
-        storage.addPatientData(1, 1, "Alert",1714376789052L); // same time
+        storage.addPatientData("1", 1, "Alert",1714376789052L); // same time
 
         // Generated alerts for patients
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
@@ -332,23 +335,23 @@ class EvaluateDataTest {
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
         // staff alert
-        storage.addPatientData(1,  -0.45947993431497647, "ECG",1716579044014L);
-        storage.addPatientData(1,  0.751036609873168, "ECG", 1716579045024L);
-        storage.addPatientData( 1,  0.7715715261423168, "ECG", 1716579046022L);
-        storage.addPatientData(1,  0.2134302739543229, "ECG", 1716579047014L);
-        storage.addPatientData(1,  -0.38711157663843443, "ECG",1716579048020L);
-        storage.addPatientData(1,  0.5323740342562988, "ECG", 1716579049013L);
-        storage.addPatientData(1,  0.758495186616306, "ECG", 1716579050022L);
-        storage.addPatientData(1,  0.4548244972706137, "ECG",1716579051021L);
-        storage.addPatientData(1,  -0.4802269932870855, "ECG", 1716579052015L);
-        storage.addPatientData(1,  -0.1802198165576428, "ECG", 1716579053024L);
-        storage.addPatientData(1,  0.27809302908830535, "ECG", 1716579054020L);
-        storage.addPatientData(1,  -0.4515193182467387, "ECG", 1716579055020L);
-        storage.addPatientData(1,  0.18144082417659804, "ECG", 1716579056015L);
-        storage.addPatientData(1,  0.7485106543877843, "ECG", 1716579057023L);
+        storage.addPatientData("1",  -0.45947993431497647, "ECG",1716579044014L);
+        storage.addPatientData("1",  0.751036609873168, "ECG", 1716579045024L);
+        storage.addPatientData("1",  0.7715715261423168, "ECG", 1716579046022L);
+        storage.addPatientData("1",  0.2134302739543229, "ECG", 1716579047014L);
+        storage.addPatientData("1",  -0.38711157663843443, "ECG",1716579048020L);
+        storage.addPatientData("1",  0.5323740342562988, "ECG", 1716579049013L);
+        storage.addPatientData("1",  0.758495186616306, "ECG", 1716579050022L);
+        storage.addPatientData("1",  0.4548244972706137, "ECG",1716579051021L);
+        storage.addPatientData("1",  -0.4802269932870855, "ECG", 1716579052015L);
+        storage.addPatientData("1",  -0.1802198165576428, "ECG", 1716579053024L);
+        storage.addPatientData("1",  0.27809302908830535, "ECG", 1716579054020L);
+        storage.addPatientData("1",  -0.4515193182467387, "ECG", 1716579055020L);
+        storage.addPatientData("1",  0.18144082417659804, "ECG", 1716579056015L);
+        storage.addPatientData("1",  0.7485106543877843, "ECG", 1716579057023L);
 
         // Generated alerts for patients
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
@@ -371,7 +374,7 @@ class EvaluateDataTest {
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
         // Generated alerts for patients
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
@@ -391,15 +394,15 @@ class EvaluateDataTest {
         DataStorage storage = new DataStorage();
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
-        storage.addPatientData(1,  0.18144082417659804, "ECG", 1716579056015L);
-        storage.addPatientData(1,  0.7485106543877843, "ECG", 1716579057023L);
-        storage.addPatientData(1,  0.2485646543877843, "ECG", 1716579058025L);
-        storage.addPatientData(1, -0.1592047543877843, "ECG", 1716579059027L);
-        storage.addPatientData(1, 0.3485646543877843, "ECG", 1716579061027L);
-        storage.addPatientData(1, 0.1585646543877843, "ECG", 1716579062028L);
+        storage.addPatientData("1",  0.18144082417659804, "ECG", 1716579056015L);
+        storage.addPatientData("1",  0.7485106543877843, "ECG", 1716579057023L);
+        storage.addPatientData("1",  0.2485646543877843, "ECG", 1716579058025L);
+        storage.addPatientData("1", -0.1592047543877843, "ECG", 1716579059027L);
+        storage.addPatientData("1", 0.3485646543877843, "ECG", 1716579061027L);
+        storage.addPatientData("1", 0.1585646543877843, "ECG", 1716579062028L);
 
         // Generated alerts for patients
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
         System.err.println(alerts.toString());
         // Expected alerts for patients
@@ -422,18 +425,18 @@ class EvaluateDataTest {
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
         // Generated alerts for patients
-        storage.addPatientData(1,  -0.07241039374407757, "ECG",  1716653765234L);
-        storage.addPatientData(1,  -0.3384726671194705, "ECG",  1716653766734L);
-        storage.addPatientData(1,  -0.2796054655371677, "ECG",  1716653768234L);
-        storage.addPatientData(1, -0.11439213986568285, "ECG",  1716653769734L);
-        storage.addPatientData(1,  0.1519569143952934, "ECG",  1716653771234L);
-        storage.addPatientData(1, -0.2310429785511261, "ECG",  1716653772734L);
-        storage.addPatientData(1, 0.7205593524089258, "ECG",  1716653774234L);
-        storage.addPatientData(1, -0.5260688529517142, "ECG",  1716653775734L);
-        storage.addPatientData(1,  -0.04508478904935673, "ECG",  1716653777234L);
-        storage.addPatientData(1,  -0.044565856100253765, "ECG", 1716653778734L);
+        storage.addPatientData("1",  -0.07241039374407757, "ECG",  1716653765234L);
+        storage.addPatientData("1",  -0.3384726671194705, "ECG",  1716653766734L);
+        storage.addPatientData("1",  -0.2796054655371677, "ECG",  1716653768234L);
+        storage.addPatientData("1", -0.11439213986568285, "ECG",  1716653769734L);
+        storage.addPatientData("1",  0.1519569143952934, "ECG",  1716653771234L);
+        storage.addPatientData("1", -0.2310429785511261, "ECG",  1716653772734L);
+        storage.addPatientData("1", 0.7205593524089258, "ECG",  1716653774234L);
+        storage.addPatientData("1", -0.5260688529517142, "ECG",  1716653775734L);
+        storage.addPatientData("1",  -0.04508478904935673, "ECG",  1716653777234L);
+        storage.addPatientData("1",  -0.044565856100253765, "ECG", 1716653778734L);
 
-        alertGenerator.evaluateData(storage.getPatient(1));
+        alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients

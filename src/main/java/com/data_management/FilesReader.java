@@ -82,7 +82,7 @@ public class FilesReader implements DataReader {
 
                         double measurementValue = getMeasurementValue(parts);
                         // Add data to dataStorage
-                        dataStorage.addPatientData(patientId, measurementValue, label, timestamp);
+                        dataStorage.addPatientData(patientId+"", measurementValue, label, timestamp);
                     }
                 }
             }
@@ -123,7 +123,7 @@ public class FilesReader implements DataReader {
             DataStorage storage = new DataStorage();
 
             s.readData(storage);
-           for(PatientRecord re : storage.getAllRecords(1)){
+           for(PatientRecord re : storage.getAllRecords("1")){
                System.out.println(re.getRecordType());
            }
 
