@@ -29,6 +29,7 @@ import java.util.ArrayList;
  * Simulator for generating health data for multiple patients and outputting it using different strategies.
  */
 public class HealthDataSimulator {
+    private static HealthDataSimulator instance;
 
     private static int patientCount = 100; // Default number of patients
     private static ScheduledExecutorService scheduler;
@@ -47,6 +48,19 @@ public class HealthDataSimulator {
 
         scheduleTasksForPatients(patientIds);
     }
+
+    /**
+     * Retrieves the singleton instance of HealthDataSimulator.
+     *
+     * @return The singleton instance of HealthDataSimulator.
+     */
+    public static synchronized HealthDataSimulator getInstance() {
+        if (instance == null) {
+            instance = new HealthDataSimulator();
+        }
+        return instance;
+    }
+
     /**
      * Parses the command-line arguments and configures the simulator accordingly.
      *

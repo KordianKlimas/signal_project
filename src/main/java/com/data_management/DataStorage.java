@@ -13,6 +13,7 @@ import com.alerts.AlertGenerator;
  * patient IDs.
  */
 public class DataStorage {
+    private static DataStorage instance;
     private Map<String, Patient> patientMap; // Stores patient objects indexed by their unique patient ID.
 
     /**
@@ -22,6 +23,19 @@ public class DataStorage {
     public DataStorage() {
         this.patientMap = new HashMap<>();
     }
+
+    /**
+     * Retrieves the singleton instance of DataStorage.
+     *
+     * @return The singleton instance of DataStorage.
+     */
+    public static synchronized DataStorage getInstance() {
+        if (instance == null) {
+            instance = new DataStorage();
+        }
+        return instance;
+    }
+
 
     /**
      * Adds or updates patient data in the storage.
