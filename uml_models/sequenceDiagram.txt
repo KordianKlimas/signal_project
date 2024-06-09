@@ -1,8 +1,8 @@
 The sequence diagram displays 3 possible situations.
 1. The patients continuous  health monitoring.
-The data is continuously gathered for each patient. It's analyzed by the alert generator with use of patients history and conditions.
-If the alert generator finds the state of patient to be in danger, it will alert the staff.
-The staff later gives feedback on whether the alert was needed. The alert generator analyzes given feedback and applies new history of patient states.
+The data is continuously gathered for each patient. It's analyzed by the basicAlert generator with use of patients history and conditions.
+If the basicAlert generator finds the state of patient to be in danger, it will basicAlert the staff.
+The staff later gives feedback on whether the basicAlert was needed. The basicAlert generator analyzes given feedback and applies new history of patient states.
 
-2. The staff  is able to update, or add new history or conditions to the data center. The alert generator will analyze new data.
-3. The staff can inform the alert generator  about occurance of health risk state of patient if the alert generator did not recognized it as risk in past.
+2. The staff  is able to update, or add new history or conditions to the data center. The basicAlert generator will analyze new data.
+3. The staff can inform the basicAlert generator  about occurance of health risk state of patient if the basicAlert generator did not recognized it as risk in past.

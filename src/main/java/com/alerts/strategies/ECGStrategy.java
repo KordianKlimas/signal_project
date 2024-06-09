@@ -1,6 +1,6 @@
 package com.alerts.strategies;
 
-import com.alerts.Alert;
+import com.alerts.decorators.BasicAlert;
 import com.alerts.AlertGenerator;
 import com.data_management.DataStorage;
 import com.data_management.Patient;
@@ -26,7 +26,7 @@ public class ECGStrategy extends AlertGenerator implements AlertStrategy{
     }
 
     @Override
-    public List<Alert> checkAlert(Patient patient, long startTime, long endTime) {
+    public List<BasicAlert> checkAlert(Patient patient, long startTime, long endTime) {
         return checkECG(patient,startTime,endTime);
     }
 
@@ -41,7 +41,7 @@ public class ECGStrategy extends AlertGenerator implements AlertStrategy{
      * @param startTime - specifies time window
      * @param endTime - specifies time window
      */
-    private List<Alert> checkECG(Patient patient, long startTime, long endTime){
+    private List<BasicAlert> checkECG(Patient patient, long startTime, long endTime){
         final int windowSize = 10;
         final int windowTimeMinutes = 10; // in minutes. within this time the standard deviation is calculated
         final double heartRateLowerBound = 50;
@@ -54,7 +54,7 @@ public class ECGStrategy extends AlertGenerator implements AlertStrategy{
                 .sorted(comparingLong(PatientRecord::getTimestamp))
                 .collect(Collectors.toList());
 
-        List<Alert> alerts = new ArrayList<>();
+        List<BasicAlert> basicAlerts = new ArrayList<>();
 
         // Irregular Beat Pattern Detection
         if (ECGRecords.size() > 1) {
@@ -71,14 +71,14 @@ public class ECGStrategy extends AlertGenerator implements AlertStrategy{
                 long intervalDifference = Math.abs(currentRecord.getTimestamp() - previousRecord.getTimestamp());
 
                 if (Math.abs(intervalDifference - averageInterval) > allowableVariation) {
-                    alerts.add(new Alert(patientId, "Irregular Beat Pattern", currentRecord.getTimestamp()));
+                    basicAlerts.add(new BasicAlert(patientId, "Irregular Beat Pattern", currentRecord.getTimestamp()));
                 }
                 previousRecord = currentRecord;
             }
         }
 
 
-        return alerts;
+        return basicAlerts;
     }
 
 

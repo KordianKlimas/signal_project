@@ -20,10 +20,10 @@ Data Storage System:
 allows to store medical Patient's and staff data.
 
 Alert Genertaion System:
-creates and manages alerts based on  Storage System data
+creates and manages basicAlerts based on  Storage System data
 
 Alert Genertaion System:
-creates and manages alerts based on  Storage System data
+creates and manages basicAlerts based on  Storage System data
 
 Data Access Layer:
-allows staff to add and retrive any information about patients, and  alerts staff  via console giving description of patient's condition
+allows staff to add and retrive any information about patients, and  basicAlerts staff  via console giving description of patient's condition

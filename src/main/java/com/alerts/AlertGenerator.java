@@ -1,5 +1,7 @@
 package com.alerts;
 
+import com.alerts.decorators.Alert;
+import com.alerts.decorators.BasicAlert;
 import com.alerts.strategies.*;
 import com.data_management.DataStorage;
 import com.data_management.Patient;
@@ -7,12 +9,10 @@ import com.data_management.PatientRecord;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static java.util.Comparator.comparingLong;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -23,8 +23,9 @@ import static java.util.stream.Collectors.toList;
  */
 public class AlertGenerator {
     private DataStorage dataStorage;
-    public List<Alert> alerts = new LinkedList<>();
-    public AlertStrategy strategy;
+    public List<BasicAlert> basicAlerts = new LinkedList<>();
+    public AlertStrategy alertStrategy;
+    public Alert alertStartegy;
 
     /**
      * Constructs an {@code AlertGenerator} with a specified {@code DataStorage}.
@@ -41,13 +42,13 @@ public class AlertGenerator {
     /**
      * Sets strategy for the AlertGenerator
      *
-     * @param strategy - AlertStrategy interface
+     * @param alertStrategy - AlertStrategy interface
      */
-    public void setStrategy(AlertStrategy strategy) {
-        if (strategy == null) {
+    public void setAlertStrategy(AlertStrategy alertStrategy) {
+        if (alertStrategy == null) {
             throw new NullPointerException("Strategy cannot be null");
         }
-        this.strategy = strategy;
+        this.alertStrategy = alertStrategy;
     }
     /**
      * Evaluates the specified patient's data to determine if any alert conditions
@@ -67,30 +68,30 @@ public class AlertGenerator {
             System.err.println("Null or no patient provided");
             return;
         }
-        this.alerts=new LinkedList<>();
+        this.basicAlerts =new LinkedList<>();
 
         for(PatientRecord record:patient.getAllRecords()){
             if(record.getRecordType().equals("Alert")&&record.getMeasurementValue()==1){
-                alerts.add(new Alert(record.getPatientId(),"Triggered Alert",record.getTimestamp()));
+                basicAlerts.add(new BasicAlert(record.getPatientId(),"Triggered Alert",record.getTimestamp()));
             }
         }
 
         // trigger alert if certain condition are met
-        setStrategy(new BloodPressureStrategy(dataStorage));
-        this.alerts.addAll(strategy.checkAlert(patient,0L,9223372036854775807L));
+        setAlertStrategy(new BloodPressureStrategy(dataStorage));
+        this.basicAlerts.addAll(alertStrategy.checkAlert(patient,0L,9223372036854775807L));
 
-        setStrategy(new OxygenSaturationStrategy(dataStorage));
-        this.alerts.addAll(strategy.checkAlert(patient,0L,9223372036854775807L));
+        setAlertStrategy(new OxygenSaturationStrategy(dataStorage));
+        this.basicAlerts.addAll(alertStrategy.checkAlert(patient,0L,9223372036854775807L));
 
-        setStrategy(new ECGStrategy(dataStorage));
-        this.alerts.addAll(strategy.checkAlert(patient,0L,9223372036854775807L));
+        setAlertStrategy(new ECGStrategy(dataStorage));
+        this.basicAlerts.addAll(alertStrategy.checkAlert(patient,0L,9223372036854775807L));
 
-        setStrategy(new HeartRateStrategy(dataStorage));
-        this.alerts.addAll(strategy.checkAlert(patient,0L,9223372036854775807L));
+        setAlertStrategy(new HeartRateStrategy(dataStorage));
+        this.basicAlerts.addAll(alertStrategy.checkAlert(patient,0L,9223372036854775807L));
 
         // compound alert:
-        this.alerts.addAll(checkCompoundAlerts(patient,"SystolicPressure critical value reached","Low Saturation of oxygen in blood",0.1,"Hypotensive Hypoxemia Alert"));
-        triggerAlerts(alerts);
+        this.basicAlerts.addAll(checkCompoundAlerts(patient,"SystolicPressure critical value reached","Low Saturation of oxygen in blood",0.1,"Hypotensive Hypoxemia Alert"));
+        triggerAlerts(basicAlerts);
     }
 
     /**
@@ -103,17 +104,17 @@ public class AlertGenerator {
 
         if (patient == null) {
             throw new NullPointerException("Patient cannot be null.");
-        } else if (strategy == null) {
+        } else if (alertStrategy == null) {
             throw new NullPointerException("Strategy cannot be null.");
         }
 
         for(PatientRecord record:patient.getAllRecords()){
             if(record.getRecordType().equals("Alert")&&record.getMeasurementValue()==1){
-                alerts.add(new Alert(record.getPatientId(),"Triggered Alert",record.getTimestamp()));
+                basicAlerts.add(new BasicAlert(record.getPatientId(),"Triggered Alert",record.getTimestamp()));
             }
         }
 
-        strategy.checkAlert(patient, startTime,endTime);
+        alertStrategy.checkAlert(patient, startTime,endTime);
     }
 
     /**
@@ -125,56 +126,56 @@ public class AlertGenerator {
      * @param compoundAlertName - new composed alert
      * @return List<Alert>
      */
-    private List<Alert> checkCompoundAlerts(Patient patient,String alert1,String alert2,double timeInterval,String compoundAlertName){
+    private List<BasicAlert> checkCompoundAlerts(Patient patient, String alert1, String alert2, double timeInterval, String compoundAlertName){
         // List to store the alerts that meet certain conditions
-        List<Alert> AlertsSpotted = new ArrayList<>();
+        List<BasicAlert> alertsSpotted = new ArrayList<>();
 
         // Filtering alerts based on specific conditions
-        List<Alert> filteredList = alerts.stream()
+        List<BasicAlert> filteredList = basicAlerts.stream()
                 .filter(alert -> alert.getCondition().equals(alert1) || alert.getCondition().equals(alert2))
                 .collect(toList());
 
         // Sorting the filtered alerts by timestamp
-        List<Alert> sortedFilteredAlerts = filteredList.stream()
-                .sorted(Comparator.comparing(Alert::getTimestamp))
+        List<BasicAlert> sortedFilteredBasicAlerts = filteredList.stream()
+                .sorted(Comparator.comparing(BasicAlert::getTimestamp))
                 .collect(toList());
 
         // Iterating through the sorted filtered alerts to find consecutive alerts within a time interval
-        for (int i = 0; i < sortedFilteredAlerts.size() - 1; i++) {
-            long currentTimestamp = sortedFilteredAlerts.get(i).getTimestamp();
-            long nextTimestamp = sortedFilteredAlerts.get(i + 1).getTimestamp();
+        for (int i = 0; i < sortedFilteredBasicAlerts.size() - 1; i++) {
+            long currentTimestamp = sortedFilteredBasicAlerts.get(i).getTimestamp();
+            long nextTimestamp = sortedFilteredBasicAlerts.get(i + 1).getTimestamp();
 
             // Checking if the time difference between consecutive alerts is within the specified time interval
             if (nextTimestamp - currentTimestamp <= timeInterval * 60 * 1000) {
                 // Removing the consecutive alerts from the main alerts list
-                this.alerts.remove(sortedFilteredAlerts.get(i));
-                this.alerts.remove(sortedFilteredAlerts.get(i + 1));
+                this.basicAlerts.remove(sortedFilteredBasicAlerts.get(i));
+                this.basicAlerts.remove(sortedFilteredBasicAlerts.get(i + 1));
 
                 // Creating a new compound alert and adding it to the list of spotted alerts
-                Alert alert = new Alert(patient.getId() + "", compoundAlertName, currentTimestamp);
-                AlertsSpotted.add(alert);
+                BasicAlert basicAlert = new BasicAlert(patient.getId() + "", compoundAlertName, currentTimestamp);
+                alertsSpotted.add(basicAlert);
             }
         }
-        return  AlertsSpotted;
+        return alertsSpotted;
     }
+
 
     /**
      * Removes all repeating same category alerts , informs staff about only the oldest unresolved alert
-     * @param alerts the list of alerts for one user
+     * @param basicAlerts the list of alerts for one user
      */
-    private void triggerAlerts(List<Alert> alerts) {
-        Map<String, Alert> alertMap = new HashMap<>();
+    private void triggerAlerts(List<BasicAlert> basicAlerts) {
+        Map<String, BasicAlert> alertMap = new HashMap<>();
 
         // Iterate through the alerts
-        for (Alert alert : alerts) {
-            if(!(alertMap.containsKey(alert.getCondition()))){
-                alertMap.put(alert.getCondition(),alert);
+        for (BasicAlert basicAlert : basicAlerts) {
+            if(!(alertMap.containsKey(basicAlert.getCondition()))){
+                alertMap.put(basicAlert.getCondition(), basicAlert);
             }
          }
         // Notify staff about alert
-        for(Alert alert : alertMap.values()){
-            System.out.println("Alert:");
-            System.out.println(alert.getPatientId()+" "+ alert.getCondition()+" "+ alert.getTimestamp());
+        for(BasicAlert basicAlert : alertMap.values()){
+           basicAlert.triggerAlert();
         }
 
     }
@@ -183,16 +184,16 @@ public class AlertGenerator {
      * Testing method
      * return all non-repeating alerts
      */
-    public List<Alert> getAlerts_Junit(){
-        Map<String, Alert> alertMap = new HashMap<>();
+    public List<BasicAlert> getAlerts_Junit(){
+        Map<String, BasicAlert> alertMap = new HashMap<>();
         // Iterate through the alerts
-        for (Alert alert : alerts) {
-            if(!(alertMap.containsKey(alert.getCondition()))){
-                alertMap.put(alert.getCondition(),alert);
+        for (BasicAlert basicAlert : basicAlerts) {
+            if(!(alertMap.containsKey(basicAlert.getCondition()))){
+                alertMap.put(basicAlert.getCondition(), basicAlert);
             }
         }
 
-        LinkedList<Alert> alertsFinal = new LinkedList(alertMap.values());
+        LinkedList<BasicAlert> alertsFinal = new LinkedList(alertMap.values());
         return alertsFinal;
     }
 

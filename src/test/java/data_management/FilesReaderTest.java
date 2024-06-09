@@ -2,12 +2,10 @@ package data_management;
 
 import static org.junit.Assert.*;
 
-import com.alerts.Alert;
 import com.data_management.DataStorage;
 import com.data_management.FilesReader;
 import com.data_management.Patient;
 import com.data_management.PatientRecord;
-import org.junit.Before;
 import org.junit.Test;
 import java.io.IOException;
 import java.util.*;

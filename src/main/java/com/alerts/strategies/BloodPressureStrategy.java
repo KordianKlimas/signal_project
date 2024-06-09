@@ -1,6 +1,6 @@
 package com.alerts.strategies;
 
-import com.alerts.Alert;
+import com.alerts.decorators.BasicAlert;
 import com.alerts.AlertGenerator;
 import com.data_management.DataStorage;
 import com.data_management.Patient;
@@ -29,11 +29,11 @@ public class BloodPressureStrategy extends AlertGenerator implements AlertStrate
     }
 
     @Override
-    public List<Alert> checkAlert(Patient patient, long startTime, long endTime) {
+    public List<BasicAlert> checkAlert(Patient patient, long startTime, long endTime) {
         return checkBloodPressure(patient,startTime,endTime);
     }
 
-    private List<Alert> checkBloodPressure(Patient patient, long startTime, long endTime ){
+    private List<BasicAlert> checkBloodPressure(Patient patient, long startTime, long endTime ){
         // preparing  data
         String patientId = patient.getId();
         List<PatientRecord> systolicRecords = dataStorage.getRecords(patientId, startTime, endTime)
@@ -51,7 +51,7 @@ public class BloodPressureStrategy extends AlertGenerator implements AlertStrate
         //trend alert for DiastolicPressure
         final double TrendThreshold = 10; //  10mmHG increase/decrease
         final int TrendReadings= 3; // Trigger an alert if the patient's blood pressure (systolic or diastolic) shows a consistent increase or decrease across three consecutive readings
-        List<Alert> AlertsSpotted = new ArrayList<>();
+        List<BasicAlert> alertsSpotted = new ArrayList<>();
         //Trigger an alert if the systolic blood pressure exceeds 180
         //mmHg or drops below 90 mmHg, or if diastolic blood pressure exceeds 120 mmHg or
         //drops below 60 mmHg.
@@ -81,23 +81,23 @@ public class BloodPressureStrategy extends AlertGenerator implements AlertStrate
                 }
                 if(TrendCounter==TrendReadings-1){
 
-                    Alert alert = new Alert( patientId,"SystolicPressure dangerous trend",systolicRecords.get(i-TrendReadings+2).getTimestamp());
-                    AlertsSpotted.add(alert);
+                    BasicAlert basicAlert = new BasicAlert( patientId,"SystolicPressure dangerous trend",systolicRecords.get(i-TrendReadings+2).getTimestamp());
+                    alertsSpotted.add(basicAlert);
                 }
                 if(CriticalThreshold_SystolicPressure_max < pressureVal_current || CriticalThreshold_SystolicPressure_min>pressureVal_current ){
-                    Alert alert = new Alert( patientId,"SystolicPressure critical value reached",systolicRecords.get(i).getTimestamp());
-                    AlertsSpotted.add(alert);
+                    BasicAlert basicAlert = new BasicAlert( patientId,"SystolicPressure critical value reached",systolicRecords.get(i).getTimestamp());
+                    alertsSpotted.add(basicAlert);
                 }
                 if(i<systolicRecords.size()-1 && (CriticalThreshold_SystolicPressure_max < pressureVal_next || CriticalThreshold_SystolicPressure_min>pressureVal_next)){
-                    Alert alert = new Alert( patientId,"SystolicPressure critical value reached",systolicRecords.get(i+1).getTimestamp());
-                    AlertsSpotted.add(alert);
+                    BasicAlert basicAlert = new BasicAlert( patientId,"SystolicPressure critical value reached",systolicRecords.get(i+1).getTimestamp());
+                    alertsSpotted.add(basicAlert);
                 }
             }
             if(systolicRecords.size()==1){
                 double pressureVal_current = systolicRecords.get(0).getMeasurementValue();
                 if(CriticalThreshold_SystolicPressure_max < pressureVal_current || CriticalThreshold_SystolicPressure_min>pressureVal_current ){
-                    Alert alert = new Alert( patientId,"SystolicPressure critical value reached",systolicRecords.get(0).getTimestamp());
-                    AlertsSpotted.add(alert);
+                    BasicAlert basicAlert = new BasicAlert( patientId,"SystolicPressure critical value reached",systolicRecords.get(0).getTimestamp());
+                    alertsSpotted.add(basicAlert);
                 }
             }
         }
@@ -120,27 +120,27 @@ public class BloodPressureStrategy extends AlertGenerator implements AlertStrate
                 }
                 if(TrendCounter==TrendReadings-1){
 
-                    Alert alert = new Alert( patientId,"DiastolicPressure dangerous trend",DiastolicRecords.get(i-TrendReadings+2).getTimestamp());
-                    AlertsSpotted.add(alert);
+                    BasicAlert basicAlert = new BasicAlert( patientId,"DiastolicPressure dangerous trend",DiastolicRecords.get(i-TrendReadings+2).getTimestamp());
+                    alertsSpotted.add(basicAlert);
                 }
                 if(CriticalThreshold_DiastolicPressure_max < pressureVal_current || CriticalThreshold_DiastolicPressure_min>pressureVal_current ){
-                    Alert alert = new Alert( patientId,"DiastolicPressure critical value reached",DiastolicRecords.get(i).getTimestamp());
-                    AlertsSpotted.add(alert);
+                    BasicAlert basicAlert = new BasicAlert( patientId,"DiastolicPressure critical value reached",DiastolicRecords.get(i).getTimestamp());
+                    alertsSpotted.add(basicAlert);
                 }
                 if(i<DiastolicRecords.size()-1 && (CriticalThreshold_DiastolicPressure_max < pressureVal_next || CriticalThreshold_DiastolicPressure_min>pressureVal_next)){
-                    Alert alert = new Alert( patientId,"DiastolicPressure critical value reached",DiastolicRecords.get(i+1).getTimestamp());
-                    AlertsSpotted.add(alert);
+                    BasicAlert basicAlert = new BasicAlert( patientId,"DiastolicPressure critical value reached",DiastolicRecords.get(i+1).getTimestamp());
+                    alertsSpotted.add(basicAlert);
                 }
             }
             if(DiastolicRecords.size()==1){
                 double pressureVal_current = DiastolicRecords.get(0).getMeasurementValue();
                 if(CriticalThreshold_DiastolicPressure_max < pressureVal_current || CriticalThreshold_DiastolicPressure_min>pressureVal_current ){
-                    Alert alert = new Alert( patientId,"DiastolicPressure critical value reached",DiastolicRecords.get(0).getTimestamp());
-                    AlertsSpotted.add(alert);
+                    BasicAlert basicAlert = new BasicAlert( patientId,"DiastolicPressure critical value reached",DiastolicRecords.get(0).getTimestamp());
+                    alertsSpotted.add(basicAlert);
                 }
             }
         }
-        return AlertsSpotted;
+        return alertsSpotted;
     }
 
 }

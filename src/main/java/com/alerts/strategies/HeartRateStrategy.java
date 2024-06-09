@@ -1,6 +1,6 @@
 package com.alerts.strategies;
 
-import com.alerts.Alert;
+import com.alerts.decorators.BasicAlert;
 import com.alerts.AlertGenerator;
 import com.data_management.DataStorage;
 import com.data_management.Patient;
@@ -31,7 +31,7 @@ public class HeartRateStrategy extends AlertGenerator implements AlertStrategy{
 
 
     @Override
-    public List<Alert> checkAlert(Patient patient, long startTime, long endTime) {
+    public List<BasicAlert> checkAlert(Patient patient, long startTime, long endTime) {
         return checkHeartRate(patient,startTime,endTime);
     }
 
@@ -46,7 +46,7 @@ public class HeartRateStrategy extends AlertGenerator implements AlertStrategy{
      * @param startTime - specifies time window
      * @param endTime - specifies time window
      */
-    private List<Alert> checkHeartRate(Patient patient, long startTime, long endTime){
+    private List<BasicAlert> checkHeartRate(Patient patient, long startTime, long endTime){
         final int windowSize = 10;
         final double heartRateLowerBound = 50;
         final double heartRateUpperBound = 100;
@@ -58,7 +58,7 @@ public class HeartRateStrategy extends AlertGenerator implements AlertStrategy{
                 .sorted(comparingLong(PatientRecord::getTimestamp))
                 .collect(Collectors.toList());
 
-        List<Alert> alerts = new ArrayList<>();
+        List<BasicAlert> basicAlerts = new ArrayList<>();
 
         // Abnormal Heart Rate Detection
         int windowStart = 0;
@@ -71,15 +71,15 @@ public class HeartRateStrategy extends AlertGenerator implements AlertStrategy{
                 // Check for abnormal heart rate
                 if (bpm < heartRateLowerBound || bpm > heartRateUpperBound) {
                     PatientRecord record = ECGRecords.get(i);
-                    Alert alert = new Alert(patient.getId(), "Abnormal Heart Rate", record.getTimestamp());
-                    alerts.add(alert);
+                    BasicAlert basicAlert = new BasicAlert(patient.getId(), "Abnormal Heart Rate", record.getTimestamp());
+                    basicAlerts.add(basicAlert);
                 }
                 // Move the window by one data point
                 windowStart++;
             }
         }
 
-        return alerts;
+        return basicAlerts;
     }
 
     /**

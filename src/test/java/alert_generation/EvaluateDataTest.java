@@ -1,6 +1,6 @@
 package alert_generation;
 
-import com.alerts.Alert;
+import com.alerts.decorators.BasicAlert;
 import com.alerts.AlertGenerator;
 import com.data_management.DataStorage;
 import com.data_management.FilesReader;
@@ -10,12 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 
 class EvaluateDataTest {
     // Helper method for Alert check
-    private boolean alertListsAreEqual(List<Alert> list_1, List<Alert> list_2) {
+    private boolean alertListsAreEqual(List<BasicAlert> list_1, List<BasicAlert> list_2) {
         if (list_1.size() != list_2.size()) {
             return false;
         }
@@ -36,6 +35,8 @@ class EvaluateDataTest {
      */
     @Test
     void  bloodPressureAlertsTest_1() {
+
+
         DataStorage storage = new DataStorage();
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
@@ -53,9 +54,9 @@ class EvaluateDataTest {
         alertGenerator.evaluateData(storage.getPatient("1"));
 
 
-        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+        List<BasicAlert> basicAlerts = alertGenerator.getAlerts_Junit();
         System.out.println(alertGenerator.getAlerts_Junit());
-        assertTrue(alerts.isEmpty(), "No alerts expected for a healthy patient");
+        assertTrue(basicAlerts.isEmpty(), "No alerts expected for a healthy patient");
     }
     /**
      * (SystolicPressure or DiastolicPressure)
@@ -74,31 +75,31 @@ class EvaluateDataTest {
         storage.addPatientData("4", 181, "SystolicPressure",  1714376789051L);
 
         alertGenerator.evaluateData(storage.getPatient("1"));
-        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+        List<BasicAlert> basicAlerts = alertGenerator.getAlerts_Junit();
 
         alertGenerator.evaluateData(storage.getPatient("2"));
-        alerts.addAll(alertGenerator.getAlerts_Junit());
+        basicAlerts.addAll(alertGenerator.getAlerts_Junit());
 
         alertGenerator.evaluateData(storage.getPatient("3"));
-        alerts.addAll(alertGenerator.getAlerts_Junit());
+        basicAlerts.addAll(alertGenerator.getAlerts_Junit());
 
         alertGenerator.evaluateData(storage.getPatient("4"));
-        alerts.addAll(alertGenerator.getAlerts_Junit());
+        basicAlerts.addAll(alertGenerator.getAlerts_Junit());
 
 
         // Expected alerts for patients
-        List<Alert> alertsTests = new ArrayList<>();
-        Alert alert1_test = new Alert("1","DiastolicPressure critical value reached",1714376789050L);
-        Alert alert2_test = new Alert("2","DiastolicPressure critical value reached", 1714376789051L);
-        Alert alert3_test = new Alert("3","SystolicPressure critical value reached", 1714376789050L);
-        Alert alert4_test = new Alert("4","SystolicPressure critical value reached",  1714376789051L);
-        alertsTests.add(alert1_test);
-        alertsTests.add(alert2_test);
-        alertsTests.add(alert3_test);
-        alertsTests.add(alert4_test);
+        List<BasicAlert> alertsTests = new ArrayList<>();
+        BasicAlert basicAlert1_test = new BasicAlert("1","DiastolicPressure critical value reached",1714376789050L);
+        BasicAlert basicAlert2_test = new BasicAlert("2","DiastolicPressure critical value reached", 1714376789051L);
+        BasicAlert basicAlert3_test = new BasicAlert("3","SystolicPressure critical value reached", 1714376789050L);
+        BasicAlert basicAlert4_test = new BasicAlert("4","SystolicPressure critical value reached",  1714376789051L);
+        alertsTests.add(basicAlert1_test);
+        alertsTests.add(basicAlert2_test);
+        alertsTests.add(basicAlert3_test);
+        alertsTests.add(basicAlert4_test);
 
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests), "4 different alerts expected for patients");
+        assertTrue(alertListsAreEqual(basicAlerts,alertsTests), "4 different alerts expected for patients");
     }
 
     /**
@@ -137,30 +138,30 @@ class EvaluateDataTest {
         storage.addPatientData("4", 60, "DiastolicPressure",1714376789053L);
 
         alertGenerator.evaluateData(storage.getPatient("1"));
-        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+        List<BasicAlert> basicAlerts = alertGenerator.getAlerts_Junit();
 
         alertGenerator.evaluateData(storage.getPatient("2"));
-        alerts.addAll(alertGenerator.getAlerts_Junit());
+        basicAlerts.addAll(alertGenerator.getAlerts_Junit());
 
         alertGenerator.evaluateData(storage.getPatient("3"));
-        alerts.addAll(alertGenerator.getAlerts_Junit());
+        basicAlerts.addAll(alertGenerator.getAlerts_Junit());
         alertGenerator.evaluateData(storage.getPatient("4"));
-        alerts.addAll(alertGenerator.getAlerts_Junit());
+        basicAlerts.addAll(alertGenerator.getAlerts_Junit());
 
 
         // Expected alerts for patients
-        List<Alert> alertsTests = new ArrayList<>();
-        Alert alert1_test = new Alert("1","SystolicPressure dangerous trend",1714376789053L);
-        Alert alert2_test = new Alert("2","DiastolicPressure dangerous trend", 1714376789053L);
-        Alert alert3_test = new Alert("3","SystolicPressure dangerous trend", 1714376789053L);
-        Alert alert4_test = new Alert("4","DiastolicPressure dangerous trend",  1714376789053L);
-        alertsTests.add(alert1_test);
-        alertsTests.add(alert2_test);
-        alertsTests.add(alert3_test);
-        alertsTests.add(alert4_test);
+        List<BasicAlert> alertsTests = new ArrayList<>();
+        BasicAlert basicAlert1_test = new BasicAlert("1","SystolicPressure dangerous trend",1714376789053L);
+        BasicAlert basicAlert2_test = new BasicAlert("2","DiastolicPressure dangerous trend", 1714376789053L);
+        BasicAlert basicAlert3_test = new BasicAlert("3","SystolicPressure dangerous trend", 1714376789053L);
+        BasicAlert basicAlert4_test = new BasicAlert("4","DiastolicPressure dangerous trend",  1714376789053L);
+        alertsTests.add(basicAlert1_test);
+        alertsTests.add(basicAlert2_test);
+        alertsTests.add(basicAlert3_test);
+        alertsTests.add(basicAlert4_test);
 
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests), "4 different alerts expected for patients");
+        assertTrue(alertListsAreEqual(basicAlerts,alertsTests), "4 different alerts expected for patients");
     }
 
 
@@ -180,14 +181,14 @@ class EvaluateDataTest {
 
         // Generated alerts for patients
         alertGenerator.evaluateData(storage.getPatient("1"));
-        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+        List<BasicAlert> basicAlerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
-        List<Alert> alertsTests = new ArrayList<>();
+        List<BasicAlert> alertsTests = new ArrayList<>();
 
 
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests), "Wrong diagnosis of not dangerous state");
+        assertTrue(alertListsAreEqual(basicAlerts,alertsTests), "Wrong diagnosis of not dangerous state");
     }
     /**
      * (Saturation of oxygen in blood)
@@ -205,15 +206,15 @@ class EvaluateDataTest {
         storage.addPatientData("1", 93, "Saturation",1714376249053L); // minute: 9
         // Generated alerts for patients
         alertGenerator.evaluateData(storage.getPatient("1"));
-        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+        List<BasicAlert> basicAlerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
-        List<Alert> alertsTests = new ArrayList<>();
-        Alert alert1_test = new Alert("1","Rapid drop of oxygen in blood",1714376789052L);
-        alertsTests.add(alert1_test);
+        List<BasicAlert> alertsTests = new ArrayList<>();
+        BasicAlert basicAlert1_test = new BasicAlert("1","Rapid drop of oxygen in blood",1714376789052L);
+        alertsTests.add(basicAlert1_test);
 
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests), "Rapid drop of oxygen in blood not recognized");
+        assertTrue(alertListsAreEqual(basicAlerts,alertsTests), "Rapid drop of oxygen in blood not recognized");
     }
     /**
      * (Saturation of oxygen in blood)
@@ -232,16 +233,16 @@ class EvaluateDataTest {
 
         // Generated alerts for patients
         alertGenerator.evaluateData(storage.getPatient("1"));
-        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+        List<BasicAlert> basicAlerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
-        List<Alert> alertsTests = new ArrayList<>();
-        Alert alert1_test = new Alert("1","Rapid drop of oxygen in blood",1714376429052L);
-        alertsTests.add(alert1_test);
+        List<BasicAlert> alertsTests = new ArrayList<>();
+        BasicAlert basicAlert1_test = new BasicAlert("1","Rapid drop of oxygen in blood",1714376429052L);
+        alertsTests.add(basicAlert1_test);
 
 
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests), "Wrong diagnosis of Dangerous Drop of oxygen within  10 minutes starting at 4'th minute");
+        assertTrue(alertListsAreEqual(basicAlerts,alertsTests), "Wrong diagnosis of Dangerous Drop of oxygen within  10 minutes starting at 4'th minute");
     }
     /**
      * (Saturation of oxygen in blood)
@@ -260,14 +261,14 @@ class EvaluateDataTest {
 
         // Generated alerts for patients
         alertGenerator.evaluateData(storage.getPatient("1"));
-        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+        List<BasicAlert> basicAlerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
-        List<Alert> alertsTests = new ArrayList<>();
+        List<BasicAlert> alertsTests = new ArrayList<>();
 
 
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests), "Wrong diagnosis of not dangerous state");
+        assertTrue(alertListsAreEqual(basicAlerts,alertsTests), "Wrong diagnosis of not dangerous state");
     }
     /**
      * (Saturation of oxygen in blood)
@@ -285,14 +286,14 @@ class EvaluateDataTest {
 
         // Generated alerts for patients
         alertGenerator.evaluateData(storage.getPatient("1"));
-        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+        List<BasicAlert> basicAlerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
-        List<Alert> alertsTests = new ArrayList<>();
-        Alert alert = new Alert("1","Hypotensive Hypoxemia Alert",1714376789052L);
-        alertsTests.add(alert);
+        List<BasicAlert> alertsTests = new ArrayList<>();
+        BasicAlert basicAlert = new BasicAlert("1","Hypotensive Hypoxemia Alert",1714376789052L);
+        alertsTests.add(basicAlert);
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests), "Hypotensive Hypoxemia not diagnosed");
+        assertTrue(alertListsAreEqual(basicAlerts,alertsTests), "Hypotensive Hypoxemia not diagnosed");
     }
     /**
      * (Saturation of oxygen in blood)
@@ -308,15 +309,15 @@ class EvaluateDataTest {
 
         // Generated alerts for patients
         alertGenerator.evaluateData(storage.getPatient("1"));
-        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+        List<BasicAlert> basicAlerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
-        List<Alert> alertsTests = new ArrayList<>();
-        Alert alert = new Alert("1","Triggered Alert",1714376789052L);
-        alertsTests.add(alert);
+        List<BasicAlert> alertsTests = new ArrayList<>();
+        BasicAlert basicAlert = new BasicAlert("1","Triggered Alert",1714376789052L);
+        alertsTests.add(basicAlert);
 
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests), "Triggered Alert not forwarded to staff");
+        assertTrue(alertListsAreEqual(basicAlerts,alertsTests), "Triggered Alert not forwarded to staff");
     }
 
     /**
@@ -347,14 +348,14 @@ class EvaluateDataTest {
 
         // Generated alerts for patients
         alertGenerator.evaluateData(storage.getPatient("1"));
-        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+        List<BasicAlert> basicAlerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
-        List<Alert> alertsTests = new ArrayList<>();
+        List<BasicAlert> alertsTests = new ArrayList<>();
          //  (none)
 
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests), "Wrong diagnosis of not dangerous state");
+        assertTrue(alertListsAreEqual(basicAlerts,alertsTests), "Wrong diagnosis of not dangerous state");
     }
     /**
      *
@@ -370,14 +371,14 @@ class EvaluateDataTest {
 
         // Generated alerts for patients
         alertGenerator.evaluateData(storage.getPatient("1"));
-        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+        List<BasicAlert> basicAlerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
-        List<Alert> alertsTests = new ArrayList<>();
+        List<BasicAlert> alertsTests = new ArrayList<>();
         //  (none)
 
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests), "Wrong diagnosis of not dangerous state or file wrongly read");
+        assertTrue(alertListsAreEqual(basicAlerts,alertsTests), "Wrong diagnosis of not dangerous state or file wrongly read");
     }
     /**
      *
@@ -398,16 +399,16 @@ class EvaluateDataTest {
 
         // Generated alerts for patients
         alertGenerator.evaluateData(storage.getPatient("1"));
-        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+        List<BasicAlert> basicAlerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
-        List<Alert> alertsTests = new ArrayList<>();
-        Alert alert = new Alert("1","Irregular Beat Pattern",1716579057023L);
-        alertsTests.add(alert);
+        List<BasicAlert> alertsTests = new ArrayList<>();
+        BasicAlert basicAlert = new BasicAlert("1","Irregular Beat Pattern",1716579057023L);
+        alertsTests.add(basicAlert);
 
 
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests), "no alert for Irregular Beat Pattern");
+        assertTrue(alertListsAreEqual(basicAlerts,alertsTests), "no alert for Irregular Beat Pattern");
     }
     /**
      *
@@ -432,16 +433,16 @@ class EvaluateDataTest {
         storage.addPatientData("1",  -0.044565856100253765, "ECG", 1716653778734L);
 
         alertGenerator.evaluateData(storage.getPatient("1"));
-        List<Alert> alerts = alertGenerator.getAlerts_Junit();
+        List<BasicAlert> basicAlerts = alertGenerator.getAlerts_Junit();
 
         // Expected alerts for patients
-        List<Alert> alertsTests = new ArrayList<>();
-        Alert alert = new Alert("1","Abnormal Heart Rate",1716653778734L);
-        alertsTests.add(alert);
+        List<BasicAlert> alertsTests = new ArrayList<>();
+        BasicAlert basicAlert = new BasicAlert("1","Abnormal Heart Rate",1716653778734L);
+        alertsTests.add(basicAlert);
 
 
         // test if Expected alerts match with generated ones
-        assertTrue(alertListsAreEqual(alerts,alertsTests));
+        assertTrue(alertListsAreEqual(basicAlerts,alertsTests));
     }
 
 }

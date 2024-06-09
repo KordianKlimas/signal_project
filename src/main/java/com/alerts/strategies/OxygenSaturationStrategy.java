@@ -1,6 +1,6 @@
 package com.alerts.strategies;
 
-import com.alerts.Alert;
+import com.alerts.decorators.BasicAlert;
 import com.alerts.AlertGenerator;
 import com.data_management.DataStorage;
 import com.data_management.Patient;
@@ -31,7 +31,7 @@ public class OxygenSaturationStrategy  extends AlertGenerator implements AlertSt
 
 
     @Override
-    public List<Alert> checkAlert(Patient patient, long startTime, long endTime) {
+    public List<BasicAlert> checkAlert(Patient patient, long startTime, long endTime) {
         return checkBloodSaturation(patient,startTime,endTime);
     }
     /**
@@ -43,7 +43,7 @@ public class OxygenSaturationStrategy  extends AlertGenerator implements AlertSt
      * @param startTime - specifies time window
      * @param endTime - specifies time window
      */
-    private List<Alert> checkBloodSaturation(Patient patient, long startTime, long endTime) {
+    private List<BasicAlert> checkBloodSaturation(Patient patient, long startTime, long endTime) {
         String patientId = patient.getId();
         List<PatientRecord> saturationRecords = dataStorage.getRecords(patientId, startTime, endTime)
                 .stream()
@@ -51,7 +51,7 @@ public class OxygenSaturationStrategy  extends AlertGenerator implements AlertSt
                 .sorted(comparingLong(PatientRecord::getTimestamp))
                 .collect(Collectors.toList());
 
-        List<Alert> alertsSpotted = new ArrayList<>();
+        List<BasicAlert> alertsSpotted = new ArrayList<>();
         final double CRITICAL_THRESHOLD_SATURATION = 92;
         final double DROP_THRESHOLD_SATURATION = 5;
         final long WINDOW_TIME_MILLIS = 10 * 60 * 1000; // 10 minutes in milliseconds
@@ -61,8 +61,8 @@ public class OxygenSaturationStrategy  extends AlertGenerator implements AlertSt
 
             // Check for low saturation alert
             if (currentRecord.getMeasurementValue() < CRITICAL_THRESHOLD_SATURATION) {
-                Alert alert = new Alert(patientId, "Low Saturation of oxygen in blood", currentRecord.getTimestamp());
-                alertsSpotted.add(alert);
+                BasicAlert basicAlert = new BasicAlert(patientId, "Low Saturation of oxygen in blood", currentRecord.getTimestamp());
+                alertsSpotted.add(basicAlert);
             }
 
             // Check for rapid drop in saturation within the 10-minute window
@@ -76,8 +76,8 @@ public class OxygenSaturationStrategy  extends AlertGenerator implements AlertSt
 
                 double drop = Math.abs(currentRecord.getMeasurementValue() - nextRecord.getMeasurementValue());
                 if (drop >= DROP_THRESHOLD_SATURATION) {
-                    Alert alert = new Alert(patientId, "Rapid drop of oxygen in blood", nextRecord.getTimestamp());
-                    alertsSpotted.add(alert);
+                    BasicAlert basicAlert = new BasicAlert(patientId, "Rapid drop of oxygen in blood", nextRecord.getTimestamp());
+                    alertsSpotted.add(basicAlert);
                     break; // Alert created, no need to check further within this window
                 }
             }

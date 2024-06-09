@@ -1,6 +1,6 @@
 package com.alerts.strategies;
 
-import com.alerts.Alert;
+import com.alerts.decorators.BasicAlert;
 import com.data_management.Patient;
 
 import java.util.List;
@@ -13,5 +13,5 @@ public interface AlertStrategy {
      * @param endTime
      * @return
      */
-    public List<Alert> checkAlert(Patient patient, long startTime, long endTime);
+    public List<BasicAlert> checkAlert(Patient patient, long startTime, long endTime);
 }
