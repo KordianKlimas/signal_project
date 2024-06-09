@@ -12,36 +12,43 @@ import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparingLong;
 
-public class OxygenSaturationStrategy  extends AlertGenerator implements AlertStrategy{
+/**
+ * An alert strategy for monitoring oxygen saturation levels.
+ */
+public class OxygenSaturationStrategy extends AlertGenerator implements AlertStrategy {
 
-    private DataStorage dataStorage;
+    private final DataStorage dataStorage;
 
     /**
-     * Constructs an {@code AlertGenerator} with a specified {@code DataStorage}.
-     * The {@code DataStorage} is used to retrieve patient data that this class
-     * will monitor and evaluate.
+     * Constructs an OxygenSaturationStrategy with the specified data storage.
      *
-     * @param dataStorage the data storage system that provides access to patient
-     *                    data
+     * @param dataStorage the data storage system that provides access to patient data
      */
     public OxygenSaturationStrategy(DataStorage dataStorage) {
         super(dataStorage);
         this.dataStorage = dataStorage;
     }
 
-
+    /**
+     * Checks for low oxygen saturation levels and rapid drops in saturation for the given patient within the specified time frame.
+     *
+     * @param patient   the patient object
+     * @param startTime the start time of the evaluation period
+     * @param endTime   the end time of the evaluation period
+     * @return a list of basic alerts indicating any detected abnormalities
+     */
     @Override
     public List<BasicAlert> checkAlert(Patient patient, long startTime, long endTime) {
-        return checkBloodSaturation(patient,startTime,endTime);
+        return checkBloodSaturation(patient, startTime, endTime);
     }
+
     /**
-     * if no data within 10-minute window is present, the alert for Rapid Drop alert will not work.
-     * The generated  alert  for drop has timeStamp of the first analyzed record where trend drop was found
-     * ( the end of 10-minute window).
-     * Creates only one alert for one 10-minute window.
-     * @param patient - Patient object
-     * @param startTime - specifies time window
-     * @param endTime - specifies time window
+     * Checks for low oxygen saturation levels and rapid drops in saturation for the given patient within the specified time frame.
+     *
+     * @param patient   the patient object
+     * @param startTime the start time of the evaluation period
+     * @param endTime   the end time of the evaluation period
+     * @return a list of basic alerts indicating any detected abnormalities
      */
     private List<BasicAlert> checkBloodSaturation(Patient patient, long startTime, long endTime) {
         String patientId = patient.getId();

@@ -1,7 +1,6 @@
 package com.alerts.strategies;
 
 import com.alerts.decorators.BasicAlert;
-import com.alerts.AlertGenerator;
 import com.data_management.DataStorage;
 import com.data_management.Patient;
 import com.data_management.PatientRecord;
@@ -12,41 +11,46 @@ import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparingLong;
 
-public class ECGStrategy extends AlertGenerator implements AlertStrategy{
-    private DataStorage dataStorage;
+/**
+ * A strategy for monitoring ECG data to detect abnormalities.
+ */
+public class ECGStrategy implements AlertStrategy {
+    private final DataStorage dataStorage;
 
     /**
-     * Constructs an {@code AlertGenerator} with a specified {@code DataStorage}.
-     * The {@code DataStorage} is used to retrieve patient data that this class
+     * Constructs an ECGStrategy object with a specified DataStorage.
+     * The DataStorage is used to retrieve patient data that this class
      * will monitor and evaluate.
+     *
+     * @param dataStorage the data storage system that provides access to patient data
      */
     public ECGStrategy(DataStorage dataStorage) {
-        super(dataStorage);
         this.dataStorage = dataStorage;
     }
 
+    /**
+     * Checks for ECG alerts for the given patient within the specified time range.
+     * Alerts are generated for abnormal heart rate and irregular beat patterns.
+     *
+     * @param patient   the patient for whom ECG alerts are checked
+     * @param startTime the start time of the time window
+     * @param endTime   the end time of the time window
+     * @return a list of BasicAlert objects representing the ECG alerts found
+     */
     @Override
     public List<BasicAlert> checkAlert(Patient patient, long startTime, long endTime) {
-        return checkECG(patient,startTime,endTime);
+        return checkECG(patient, startTime, endTime);
     }
 
     /**
-     * Creates alert for Abnormal Heart Rate when Heart Rate drops under 50 or is over 100.
+     * Checks ECG data for abnormalities and generates alerts accordingly.
      *
-     * Creates alert for Irregular beat pattern detected if in the measured data there is record two or more standard deviations.
-     * To create  alert for Irregular beat pattern, the standard deviation is calculated for time window of 10 minutes, there has
-     * to be at least 5 records within 10 minutes to trigger alert .
-     *
-     * @param patient - Patient object
-     * @param startTime - specifies time window
-     * @param endTime - specifies time window
+     * @param patient   the patient whose ECG data is being analyzed
+     * @param startTime the start time of the time window
+     * @param endTime   the end time of the time window
+     * @return a list of BasicAlert objects representing the ECG alerts found
      */
-    private List<BasicAlert> checkECG(Patient patient, long startTime, long endTime){
-        final int windowSize = 10;
-        final int windowTimeMinutes = 10; // in minutes. within this time the standard deviation is calculated
-        final double heartRateLowerBound = 50;
-        final double heartRateUpperBound = 100;
-
+    private List<BasicAlert> checkECG(Patient patient, long startTime, long endTime) {
         String patientId = patient.getId();
         List<PatientRecord> ECGRecords = dataStorage.getRecords(patientId, startTime, endTime)
                 .stream()
@@ -77,9 +81,6 @@ public class ECGStrategy extends AlertGenerator implements AlertStrategy{
             }
         }
 
-
         return basicAlerts;
     }
-
-
 }

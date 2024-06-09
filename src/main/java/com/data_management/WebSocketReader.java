@@ -39,10 +39,10 @@ public class WebSocketReader  extends WebSocketClient implements DataReader {
     /**
      * Called when a new WebSocket connection is opened.
      *
-     * @param handshakedata The handshake data of the WebSocket connection.
+     * @param handshake The handshake data of the WebSocket connection.
      */
     @Override
-    public void onOpen(ServerHandshake handshakedata) {
+    public void onOpen(ServerHandshake handshake) {
         System.out.println("new connection opened");
     }
     /**

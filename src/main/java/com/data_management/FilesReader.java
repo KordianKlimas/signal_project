@@ -18,38 +18,36 @@ import java.util.List;
  * <li>Saturation.txt</li>
  * <li>SystolicPressure.txt</li>
  * <li>WhiteBloodCells.txt</li>
+ * <li>Alert.txt</li>
  * </ul>
  */
-
 public class FilesReader implements DataReader {
-    public String Base_directory;
+    public String baseDirectory;
 
     /**
-     * Allows to import data from files in the Base_directory  directory to specified dataStorage
-     * @param Base_directory
+     * Constructs a new FilesReader with the specified base directory.
+     *
+     * @param baseDirectory The base directory where files with data are located.
      */
-    public FilesReader(String Base_directory){
-        this.Base_directory = Base_directory;
+    public FilesReader(String baseDirectory) {
+        this.baseDirectory = baseDirectory;
     }
 
     /**
-     * Allows change of directory where files with data are located
-     * @param file_directory
+     * Changes the directory where files with data are located.
+     *
+     * @param directory The new directory path.
      */
-    public void ChangeDirectory(String file_directory){
-        this.Base_directory = Base_directory;
+    public void changeDirectory(String directory) {
+        this.baseDirectory = directory;
     }
+
     @Override
     public void readData(DataStorage dataStorage) throws IOException {
-        File directory = new File(Base_directory);
+        File directory = new File(baseDirectory);
         if (!directory.isDirectory()) {
             throw new IOException("Base directory is not a valid directory.");
         }
-
-        // The List<String>  and switch could be replaced with different more scalable approach that would allow to create new types of
-        // record types beside the 7 that are currently supported ( Cholesterol, ECG.....)
-        // The type would be changed from String to Object, named ex.MetricType. MetricTypes could be then
-        // edited by staff, new types of measurements could be added, making app scalable.
 
         // Define the list of files to parse
         List<String> filesToParse = Arrays.asList(
@@ -82,7 +80,7 @@ public class FilesReader implements DataReader {
 
                         double measurementValue = getMeasurementValue(parts);
                         // Add data to dataStorage
-                        dataStorage.addPatientData(patientId+"", measurementValue, label, timestamp);
+                        dataStorage.addPatientData(String.valueOf(patientId), measurementValue, label, timestamp);
                     }
                 }
             }
@@ -91,6 +89,7 @@ public class FilesReader implements DataReader {
 
     /**
      * Parses measurement data according to the label.
+     *
      * @param parts Line of data from file
      * @return measurementValue
      */
@@ -103,11 +102,7 @@ public class FilesReader implements DataReader {
                 measurementValue = Double.parseDouble(dataString.replace("%", ""));
                 break;
             case "Alert":
-                if(dataString.equals("triggered"  )){
-                    measurementValue =1;
-                }else{
-                    measurementValue =0;
-                }
+                measurementValue = dataString.equals("triggered") ? 1 : 0;
                 break;
             default:
                 measurementValue = Double.parseDouble(dataString);
@@ -117,20 +112,21 @@ public class FilesReader implements DataReader {
         return measurementValue;
     }
 
+    /**
+     * Main method for testing purposes.
+     *
+     * @param args command line arguments
+     */
     public static void main(String[] args) {
         try {
-            FilesReader s = new FilesReader("C:\\Users\\kordi\\IdeaProjects\\signal_project\\src\\test\\java\\data_management\\testFiles");
+            FilesReader filesReader = new FilesReader("C:\\Users\\kordi\\IdeaProjects\\signal_project\\src\\test\\java\\data_management\\testFiles");
             DataStorage storage = new DataStorage();
-
-            s.readData(storage);
-           for(PatientRecord re : storage.getAllRecords("1")){
-               System.out.println(re.getRecordType());
-           }
-
-
+            filesReader.readData(storage);
+            for (PatientRecord record : storage.getAllRecords("1")) {
+                System.out.println(record.getRecordType());
+            }
         } catch (IOException e) {
             e.printStackTrace(); // Handle the exception appropriately
         }
     }
-
 }

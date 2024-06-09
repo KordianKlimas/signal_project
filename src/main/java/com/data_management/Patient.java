@@ -70,6 +70,10 @@ public class Patient {
         return patientRecords;
     }
 
+    /**
+     * Retrieves Id of patient
+     * @return patientId - String
+     */
     public String getId(){
         return patientId;
     }

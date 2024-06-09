@@ -12,41 +12,45 @@ import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparingLong;
 
-public class HeartRateStrategy extends AlertGenerator implements AlertStrategy{
+/**
+ * An alert strategy for monitoring heart rate abnormalities.
+ */
+public class HeartRateStrategy extends AlertGenerator implements AlertStrategy {
 
-    private DataStorage dataStorage;
+    private final DataStorage dataStorage;
 
     /**
-     * Constructs an {@code AlertGenerator} with a specified {@code DataStorage}.
-     * The {@code DataStorage} is used to retrieve patient data that this class
-     * will monitor and evaluate.
+     * Constructs a HeartRateStrategy with the specified data storage.
      *
-     * @param dataStorage the data storage system that provides access to patient
-     *                    data
+     * @param dataStorage the data storage system that provides access to patient data
      */
     public HeartRateStrategy(DataStorage dataStorage) {
         super(dataStorage);
         this.dataStorage = dataStorage;
     }
 
-
+    /**
+     * Checks for abnormal heart rate and irregular beat patterns for the given patient within the specified time frame.
+     *
+     * @param patient    the patient object
+     * @param startTime  the start time of the evaluation period
+     * @param endTime    the end time of the evaluation period
+     * @return a list of basic alerts indicating any detected abnormalities
+     */
     @Override
     public List<BasicAlert> checkAlert(Patient patient, long startTime, long endTime) {
-        return checkHeartRate(patient,startTime,endTime);
+        return checkHeartRate(patient, startTime, endTime);
     }
 
     /**
-     * Creates alert for Abnormal Heart Rate when Heart Rate drops under 50 or is over 100.
+     * Checks for abnormal heart rate and irregular beat patterns for the given patient within the specified time frame.
      *
-     * Creates alert for Irregular beat pattern detected if in the measured data there is record two or more standard deviations.
-     * To create  alert for Irregular beat pattern, the standard deviation is calculated for time window of 10 minutes, there has
-     * to be at least 5 records within 10 minutes to trigger alert .
-     *
-     * @param patient - Patient object
-     * @param startTime - specifies time window
-     * @param endTime - specifies time window
+     * @param patient    the patient object
+     * @param startTime  the start time of the evaluation period
+     * @param endTime    the end time of the evaluation period
+     * @return a list of basic alerts indicating any detected abnormalities
      */
-    private List<BasicAlert> checkHeartRate(Patient patient, long startTime, long endTime){
+    private List<BasicAlert> checkHeartRate(Patient patient, long startTime, long endTime) {
         final int windowSize = 10;
         final double heartRateLowerBound = 50;
         final double heartRateUpperBound = 100;
@@ -83,11 +87,12 @@ public class HeartRateStrategy extends AlertGenerator implements AlertStrategy{
     }
 
     /**
-     * Calculates BPM for patient in specified time window
-     * @param ecgData
-     * @return
+     * Calculates the beats per minute (BPM) for the given ECG data.
+     *
+     * @param ecgData the ECG data records
+     * @return the BPM calculated from the ECG data
      */
-    public  double calculateBPM(List<PatientRecord> ecgData) {
+    public double calculateBPM(List<PatientRecord> ecgData) {
         if (ecgData.isEmpty()) {
             return 0;
         }
