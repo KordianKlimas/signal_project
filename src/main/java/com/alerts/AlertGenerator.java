@@ -1,13 +1,19 @@
 package com.alerts;
 
+import com.alerts.strategies.*;
 import com.data_management.DataStorage;
-import com.data_management.FilesReader;
 import com.data_management.Patient;
 import com.data_management.PatientRecord;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import static java.util.Comparator.comparingLong;
+import static java.util.stream.Collectors.toList;
 
 /**
  * The {@code AlertGenerator} class is responsible for monitoring patient data
@@ -18,6 +24,7 @@ import java.util.stream.Collectors;
 public class AlertGenerator {
     private DataStorage dataStorage;
     public List<Alert> alerts = new LinkedList<>();
+    public AlertStrategy strategy;
 
     /**
      * Constructs an {@code AlertGenerator} with a specified {@code DataStorage}.
@@ -32,6 +39,17 @@ public class AlertGenerator {
     }
 
     /**
+     * Sets strategy for the AlertGenerator
+     *
+     * @param strategy - AlertStrategy interface
+     */
+    public void setStrategy(AlertStrategy strategy) {
+        if (strategy == null) {
+            throw new NullPointerException("Strategy cannot be null");
+        }
+        this.strategy = strategy;
+    }
+    /**
      * Evaluates the specified patient's data to determine if any alert conditions
      * are met. If a condition is met, an alert is triggered via the
      * {@link #triggerAlerts}
@@ -45,305 +63,58 @@ public class AlertGenerator {
         // record types beside the 7 that are currently supported ( Cholesterol, ECG.....) and
         // check compound alerts created by staff
 
-        // making sure there are patients
         if (patient == null) {
-            System.err.println("Null patient provided");
+            System.err.println("Null or no patient provided");
             return;
         }
-
-        LinkedList<PatientRecord> data_DiastolicPressure = new LinkedList<>();
-        LinkedList<PatientRecord> data_SystolicPressure = new LinkedList<>();
-        LinkedList<PatientRecord> data_Saturation = new LinkedList<>();
-        LinkedList<PatientRecord> data_ECG = new LinkedList<>();
-        LinkedList<PatientRecord> data_WhiteBloodCells = new LinkedList<>();
-        LinkedList<PatientRecord> data_Cholesterol = new LinkedList<>();
-        LinkedList<PatientRecord> data_RedBloodCells = new LinkedList<>();
         this.alerts=new LinkedList<>();
 
         for(PatientRecord record:patient.getAllRecords()){
-            switch (record.getRecordType()) {
-                case "DiastolicPressure":
-                    data_DiastolicPressure.add(record);
-                    break;
-                case "SystolicPressure":
-                    data_SystolicPressure.add(record);
-                    break;
-                case "Saturation":
-                    data_Saturation.add(record);
-                    break;
-                case "ECG":
-                    data_ECG.add(record);
-                    break;
-                case "WhiteBloodCells":
-                    data_WhiteBloodCells.add(record);
-                    break;
-                case "RedBloodCells":
-                    data_RedBloodCells.add(record);
-                    break;
-                case "Cholesterol":
-                    data_Cholesterol.add(record);
-                    break;
-                case "Alert":
-                    String s = record.getPatientId()+"";
-                    if(record.getMeasurementValue()==1){
-                        alerts.add(new Alert(s,"Triggered Alert",record.getTimestamp()));
-                    }
-                    break;
-                default:
-                    System.err.println("Record type not found");
-                    break;
+            if(record.getRecordType().equals("Alert")&&record.getMeasurementValue()==1){
+                alerts.add(new Alert(record.getPatientId(),"Triggered Alert",record.getTimestamp()));
             }
         }
-        // trigger alert if certain condition are met
 
-        this.alerts.addAll(checkBloodPressure(patient, data_DiastolicPressure, data_SystolicPressure));
-        this.alerts.addAll(checkBloodSaturation(patient,data_Saturation));
-        this.alerts.addAll(checkECG(patient,data_ECG));
+        // trigger alert if certain condition are met
+        setStrategy(new BloodPressureStrategy(dataStorage));
+        this.alerts.addAll(strategy.checkAlert(patient,0L,9223372036854775807L));
+
+        setStrategy(new OxygenSaturationStrategy(dataStorage));
+        this.alerts.addAll(strategy.checkAlert(patient,0L,9223372036854775807L));
+
+        setStrategy(new ECGStrategy(dataStorage));
+        this.alerts.addAll(strategy.checkAlert(patient,0L,9223372036854775807L));
+
+        setStrategy(new HeartRateStrategy(dataStorage));
+        this.alerts.addAll(strategy.checkAlert(patient,0L,9223372036854775807L));
+
         // compound alert:
         this.alerts.addAll(checkCompoundAlerts(patient,"SystolicPressure critical value reached","Low Saturation of oxygen in blood",0.1,"Hypotensive Hypoxemia Alert"));
         triggerAlerts(alerts);
     }
 
     /**
-     * Checks for dangerous trends and critical patient state. Creates alert if something is could be wrong with patient.
-     * When the trend is noticed only one alert will be generated for the time of when the trend started.
-     * If patient's blood pressure stabilizes and the trends occurs again, new alert will be created.
-     * All critical alerts will be logged and sent to staff.
-     * @param patient
-     * @param data_DiastolicPressure
-     * @param data_SystolicPressure
+     * Allows to evaluate patient's data in specyfied time window or for whole patient's data.
+     * @param patient - Patient object
+     * @param startTime - specifies time window
+     * @param endTime - specifies time window
      */
-    private List<Alert> checkBloodPressure(Patient patient,LinkedList<PatientRecord> data_DiastolicPressure,LinkedList<PatientRecord> data_SystolicPressure ){
+    public void evaluateData_StrategyPattern(Patient patient ,long startTime, long endTime) {
 
+        if (patient == null) {
+            throw new NullPointerException("Patient cannot be null.");
+        } else if (strategy == null) {
+            throw new NullPointerException("Strategy cannot be null.");
+        }
 
-        //trend alert for DiastolicPressure
-        final double TrendThreshold = 10; //  10mmHG increase/decrease
-        final int TrendReadings= 3; // Trigger an alert if the patient's blood pressure (systolic or diastolic) shows a consistent increase or decrease across three consecutive readings
-         List<Alert> AlertsSpotted = new ArrayList<>();
-        //Trigger an alert if the systolic blood pressure exceeds 180
-        //mmHg or drops below 90 mmHg, or if diastolic blood pressure exceeds 120 mmHg or
-        //drops below 60 mmHg.
-        final double CriticalThresholdd_SystolicPressure_min = 90;
-        final double CriticalThresholdd_SystolicPressure_max = 180;
-
-        final double CriticalThreshold_DiastolicPressure_min = 60;
-        final double CriticalThreshold_DiastolicPressure_max = 120;
-
-        // triggers the alert if trend or critical condition spotted
-        if(!data_SystolicPressure.isEmpty()){
-            int TrendCounter=0;
-            double changeTemp=0;
-
-            for(int i = 0; i<data_SystolicPressure.size()-1;i++){
-                double pressureVal_current =  data_SystolicPressure.get(i).getMeasurementValue();
-                double pressureVal_next =  data_SystolicPressure.get(i+1).getMeasurementValue();
-                double change = pressureVal_current - pressureVal_next;
-
-                boolean trend_alternated = changeTemp*change<0;
-                changeTemp = change;
-
-                if(Math.abs(change)>TrendThreshold && !trend_alternated){
-                    TrendCounter++;
-                }else{
-                    TrendCounter =0;
-                }
-                if(TrendCounter==TrendReadings-1){
-
-                    Alert alert = new Alert( patient.getId()+"","SystolicPressure dangerous trend",data_SystolicPressure.get(i-TrendReadings+2).getTimestamp());
-                    AlertsSpotted.add(alert);
-                }
-                if(CriticalThresholdd_SystolicPressure_max < pressureVal_current || CriticalThresholdd_SystolicPressure_min>pressureVal_current ){
-                    Alert alert = new Alert( patient.getId()+"","SystolicPressure critical value reached",data_SystolicPressure.get(i).getTimestamp());
-                    AlertsSpotted.add(alert);
-                }
-                if(i<data_SystolicPressure.size()-1 && (CriticalThresholdd_SystolicPressure_max < pressureVal_next || CriticalThresholdd_SystolicPressure_min>pressureVal_next)){
-                    Alert alert = new Alert( patient.getId()+"","SystolicPressure critical value reached",data_SystolicPressure.get(i+1).getTimestamp());
-                    AlertsSpotted.add(alert);
-                }
-            }
-            if(data_SystolicPressure.size()==1){
-                double pressureVal_current = data_SystolicPressure.getFirst().getMeasurementValue();
-                if(CriticalThresholdd_SystolicPressure_max < pressureVal_current || CriticalThresholdd_SystolicPressure_min>pressureVal_current ){
-                    Alert alert = new Alert( patient.getId()+"","SystolicPressure critical value reached",data_SystolicPressure.getFirst().getTimestamp());
-                    AlertsSpotted.add(alert);
-                }
+        for(PatientRecord record:patient.getAllRecords()){
+            if(record.getRecordType().equals("Alert")&&record.getMeasurementValue()==1){
+                alerts.add(new Alert(record.getPatientId(),"Triggered Alert",record.getTimestamp()));
             }
         }
-        if(!data_DiastolicPressure.isEmpty()){
-            int TrendCounter=0;
-            double changeTemp=0;
 
-            for(int i = 0; i<data_DiastolicPressure.size()-1;i++){
-                double pressureVal_current =  data_DiastolicPressure.get(i).getMeasurementValue();
-                double pressureVal_next =  data_DiastolicPressure.get(i+1).getMeasurementValue();
-                double change = pressureVal_current - pressureVal_next;
-
-                boolean trend_alternated = changeTemp*change<0;
-                changeTemp = change;
-
-                if(Math.abs(change)>TrendThreshold && !trend_alternated){
-                    TrendCounter++;
-                }else{
-                    TrendCounter =0;
-                }
-                if(TrendCounter==TrendReadings-1){
-
-                    Alert alert = new Alert( patient.getId()+"","DiastolicPressure dangerous trend",data_DiastolicPressure.get(i-TrendReadings+2).getTimestamp());
-                    AlertsSpotted.add(alert);
-                }
-                if(CriticalThreshold_DiastolicPressure_max < pressureVal_current || CriticalThreshold_DiastolicPressure_min>pressureVal_current ){
-                    Alert alert = new Alert( patient.getId()+"","DiastolicPressure critical value reached",data_DiastolicPressure.get(i).getTimestamp());
-                    AlertsSpotted.add(alert);
-                }
-                if(i<data_DiastolicPressure.size()-1 && (CriticalThreshold_DiastolicPressure_max < pressureVal_next || CriticalThreshold_DiastolicPressure_min>pressureVal_next)){
-                    Alert alert = new Alert( patient.getId()+"","DiastolicPressure critical value reached",data_DiastolicPressure.get(i+1).getTimestamp());
-                    AlertsSpotted.add(alert);
-                }
-            }
-            if(data_DiastolicPressure.size()==1){
-                double pressureVal_current = data_DiastolicPressure.getFirst().getMeasurementValue();
-                if(CriticalThreshold_DiastolicPressure_max < pressureVal_current || CriticalThreshold_DiastolicPressure_min>pressureVal_current ){
-                    Alert alert = new Alert( patient.getId()+"","DiastolicPressure critical value reached",data_DiastolicPressure.getFirst().getTimestamp());
-                    AlertsSpotted.add(alert);
-                }
-            }
-        }
-        return AlertsSpotted;
+        strategy.checkAlert(patient, startTime,endTime);
     }
-
-    /**
-     * if no data within 10-minute window is present, the alert for Rapid Drop alert will not work.
-     * The generated  alert  for drop has timeStamp of the first analyzed record where trend drop was found
-     * ( the end of 10-minute window).
-     * Creates only one alert for one 10-minute window.
-     * @param patient
-     * @param data_Saturation
-     * @return
-     */
-    private List<Alert> checkBloodSaturation(Patient patient,LinkedList<PatientRecord> data_Saturation){
-        List<Alert> AlertsSpotted = new ArrayList<>();
-        final double CriticalThreshold_Saturation = 92;
-        final double DropThreshold_Saturation = 5;
-        final double window_time_minutes = 10; // 10 minutes
-
-        int window_start_index = 0;
-        boolean DropAlertCreated = false;
-        for(int i=0;i<data_Saturation.size();i++){
-            PatientRecord patient_record = data_Saturation.get(i);
-            PatientRecord window_record=data_Saturation.get(window_start_index);
-
-            if(patient_record.getMeasurementValue()<CriticalThreshold_Saturation){
-                Alert alert = new Alert( patient.getId()+"","Low Saturation of oxygen in blood",patient_record.getTimestamp());
-                AlertsSpotted.add(alert);
-            }
-            if(window_record.getTimestamp() - patient_record.getTimestamp()>= window_time_minutes*60 * 1000){
-                for(int d = window_start_index;d<i;d++){
-                    if(data_Saturation.get(d).getTimestamp() - patient_record.getTimestamp()>= window_time_minutes*60 * 1000) {
-                        window_start_index =d;
-                        break;
-                    }
-                    if(d == i-1){ //no data within 10 minute window
-                        window_start_index =i;
-                    }
-                }
-
-            }
-            if(window_record.getMeasurementValue()>patient_record.getMeasurementValue() &&
-               DropThreshold_Saturation<window_record.getMeasurementValue()-patient_record.getMeasurementValue() &&
-               !DropAlertCreated
-            ){
-                Alert alert = new Alert( patient.getId()+"","Rapid drop of oxygen in blood",patient_record.getTimestamp());
-                AlertsSpotted.add(alert);
-                DropAlertCreated = true;
-            }else{
-                DropAlertCreated= false;
-            }
-
-        }
-        return AlertsSpotted;
-    }
-
-    /**
-     * Creates alert for Abnormal Heart Rate when Heart Rate drops under 50 or is over 100.
-     *
-     * Creates alert for Irregular beat pattern detected if in the measured data there is record two or more standard deviations.
-     * To create  alert for Irregular beat pattern, the standard deviation is calculated for time window of 10 minutes, there has 
-     * to be at least 5 records within 10 minutes to trigger alert .
-     *
-     * @param patient
-     * @param ecgData
-     * @return
-     */
-    private List<Alert> checkECG(Patient patient,LinkedList<PatientRecord> ecgData){
-        final int windowSize = 10;
-        final int windowTimeMinutes = 10; // in minutes. within this time the standard deviation is calculated
-        final double heartRateLowerBound = 50;
-        final double heartRateUpperBound = 100;
-
-        List<Alert> alerts = new ArrayList<>();
-
-        // Abnormal Heart Rate Detection
-        int windowStart = 0;
-        for (int i = 0; i < ecgData.size(); i++) {
-            // Check if window is filled
-            if (i >= windowSize - 1) {
-                // Calculate BPM within the window
-                double bpm = calculateBPM(ecgData.subList(windowStart, i + 1));
-
-                // Check for abnormal heart rate
-                if (bpm < heartRateLowerBound || bpm > heartRateUpperBound) {
-                    PatientRecord record = ecgData.get(i);
-                    Alert alert = new Alert(patient.getId() + "", "Abnormal Heart Rate", record.getTimestamp());
-                    alerts.add(alert);
-                }
-                // Move the window by one data point
-                windowStart++;
-            }
-        }
-
-        // Irregular Beat Pattern Detection
-        if (ecgData.size() > 1) {
-            long totalInterval = 0;
-            for (int i = 1; i < ecgData.size(); i++) {
-                totalInterval += (ecgData.get(i).getTimestamp() - ecgData.get(i - 1).getTimestamp());
-            }
-            double averageInterval = totalInterval / (double) (ecgData.size() - 1);
-            double allowableVariation = averageInterval * 0.1; // Allowing 10% variation
-
-            PatientRecord previousRecord = ecgData.get(0);
-            for (int i = 1; i < ecgData.size(); i++) {
-                PatientRecord currentRecord = ecgData.get(i);
-                long intervalDifference = Math.abs(currentRecord.getTimestamp() - previousRecord.getTimestamp());
-
-                if (Math.abs(intervalDifference - averageInterval) > allowableVariation) {
-                    alerts.add(new Alert(patient.getId() + "", "Irregular Beat Pattern", currentRecord.getTimestamp()));
-                }
-                previousRecord = currentRecord;
-            }
-        }
-
-
-        return alerts;
-    }
-
-    /**
-     * Calculates BPM for patient in specified time window
-     * @param ecgData
-     * @return
-     */
-    public  double calculateBPM(List<PatientRecord> ecgData) {
-        if (ecgData.isEmpty()) {
-            return 0;
-        }
-        long startTime = ecgData.get(0).getTimestamp();
-        long endTime = ecgData.get(ecgData.size() - 1).getTimestamp();
-        double durationMinutes = (endTime - startTime) / (1000.0 * 60.0);
-        if (durationMinutes == 0) {
-            return 0; // Prevent division by zero
-        }
-        return (ecgData.size() / durationMinutes); // returns bpm
-    }
-
 
     /**
      *  Creates compound alert  based on timeInterval, and given alerts
@@ -361,12 +132,12 @@ public class AlertGenerator {
         // Filtering alerts based on specific conditions
         List<Alert> filteredList = alerts.stream()
                 .filter(alert -> alert.getCondition().equals(alert1) || alert.getCondition().equals(alert2))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         // Sorting the filtered alerts by timestamp
         List<Alert> sortedFilteredAlerts = filteredList.stream()
                 .sorted(Comparator.comparing(Alert::getTimestamp))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         // Iterating through the sorted filtered alerts to find consecutive alerts within a time interval
         for (int i = 0; i < sortedFilteredAlerts.size() - 1; i++) {

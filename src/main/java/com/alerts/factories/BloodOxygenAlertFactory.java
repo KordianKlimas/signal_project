@@ -4,7 +4,8 @@ import com.alerts.Alert;
 
 public class BloodOxygenAlertFactory extends AlertFactory{
     @Override
-    Alert createAlert(String patientId, String condition, long timestamp) {
-        return null;
+    public Alert createAlert(String patientId, String condition, long timestamp) {
+        return new Alert(patientId, condition, timestamp);
     }
+
 }

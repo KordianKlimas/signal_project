@@ -150,10 +150,10 @@ class EvaluateDataTest {
 
         // Expected alerts for patients
         List<Alert> alertsTests = new ArrayList<>();
-        Alert alert1_test = new Alert("1","SystolicPressure dangerous trend",1714376789050L);
-        Alert alert2_test = new Alert("2","DiastolicPressure dangerous trend", 1714376789050L);
-        Alert alert3_test = new Alert("3","SystolicPressure dangerous trend", 1714376789050L);
-        Alert alert4_test = new Alert("4","DiastolicPressure dangerous trend",  1714376789050L);
+        Alert alert1_test = new Alert("1","SystolicPressure dangerous trend",1714376789053L);
+        Alert alert2_test = new Alert("2","DiastolicPressure dangerous trend", 1714376789053L);
+        Alert alert3_test = new Alert("3","SystolicPressure dangerous trend", 1714376789053L);
+        Alert alert4_test = new Alert("4","DiastolicPressure dangerous trend",  1714376789053L);
         alertsTests.add(alert1_test);
         alertsTests.add(alert2_test);
         alertsTests.add(alert3_test);
@@ -166,7 +166,7 @@ class EvaluateDataTest {
 
     /**
      * (Saturation of oxygen in blood)
-     * Not dangerous increase of oxygen within 10 minutes
+     * Not dangerous increase of oxygen (not within 10 minutes window )
      */
     @Test
     void  SaturationAlertsTest_1() {
@@ -174,9 +174,9 @@ class EvaluateDataTest {
         AlertGenerator alertGenerator = new AlertGenerator(storage);
 
         // not dangerous increase
-        storage.addPatientData("1", 93, "Saturation",1714376789052L);
-        storage.addPatientData("1", 95, "Saturation",1714377089052L);
-        storage.addPatientData("1", 99, "Saturation",1714376249052L);
+        storage.addPatientData("1", 93, "Saturation",1714376789052L  );
+        storage.addPatientData("1", 95, "Saturation",1714377029052L  );
+        storage.addPatientData("1", 99, "Saturation",1714377469052L );
 
         // Generated alerts for patients
         alertGenerator.evaluateData(storage.getPatient("1"));
@@ -207,14 +207,9 @@ class EvaluateDataTest {
         alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
 
-       //Alert alr = alerts.getFirst();
-       //System.err.println(alr.getPatientId());
-       //System.err.println(alr.getCondition());
-       //System.err.println(alr.getTimestamp());
-
         // Expected alerts for patients
         List<Alert> alertsTests = new ArrayList<>();
-        Alert alert1_test = new Alert("1","Rapid drop of oxygen in blood",1714376249052L);
+        Alert alert1_test = new Alert("1","Rapid drop of oxygen in blood",1714376789052L);
         alertsTests.add(alert1_test);
 
         // test if Expected alerts match with generated ones
@@ -404,7 +399,7 @@ class EvaluateDataTest {
         // Generated alerts for patients
         alertGenerator.evaluateData(storage.getPatient("1"));
         List<Alert> alerts = alertGenerator.getAlerts_Junit();
-        System.err.println(alerts.toString());
+
         // Expected alerts for patients
         List<Alert> alertsTests = new ArrayList<>();
         Alert alert = new Alert("1","Irregular Beat Pattern",1716579057023L);
@@ -417,7 +412,7 @@ class EvaluateDataTest {
     /**
      *
      * ECG test
-     * Abnormal beat pattern
+     * Abnormal Heart Rate
      */
     @Test
     void  ECG_test_4() throws IOException {
